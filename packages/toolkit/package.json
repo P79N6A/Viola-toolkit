@@ -1,0 +1,31 @@
+{
+  "name": "viola-toolkit",
+  "version": "0.0.0",
+  "description": "toolkit for Viola",
+  "main": "index.js",
+  "bin": {
+    "viola-toolkit": "bin/viola-toolkit.js"
+  },
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RonkTsang/Viola-toolkit.git"
+  },
+  "keywords": [
+    "viola"
+  ],
+  "author": "RonkTsang",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/RonkTsang/Viola-toolkit/issues"
+  },
+  "homepage": "https://github.com/RonkTsang/Viola-toolkit#readme",
+  "dependencies": {
+    "chalk": "^2.4.1",
+    "commander": "^2.18.0",
+    "minimist": "^1.2.0",
+    "viola-server": "^0.0.0"
+  }
+}

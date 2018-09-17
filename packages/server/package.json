@@ -1,0 +1,22 @@
+{
+  "name": "viola-server",
+  "version": "0.0.0",
+  "description": "node server for viola toolkit",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RonkTsang/Viola-toolkit.git"
+  },
+  "keywords": [
+    "viola"
+  ],
+  "author": "RonkTsang",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/RonkTsang/Viola-toolkit/issues"
+  },
+  "homepage": "https://github.com/RonkTsang/Viola-toolkit#readme"
+}
