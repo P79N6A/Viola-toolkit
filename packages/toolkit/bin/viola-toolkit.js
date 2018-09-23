@@ -12,7 +12,7 @@ program
   .description('install a plugin and invoke its generator in an already created project')
   .option('-p <port> | --port <port>', 'description test', 8080)
   .allowUnknownOption()
-  .action((plugin, pluginOptions, cmd) => {
+  .action((plugin, pluginOptions) => {
     console.log(plugin)
     console.log(pluginOptions)
     console.log(minimist(process.argv.slice(3)))
