@@ -25,7 +25,6 @@
   "dependencies": {
     "chalk": "^2.4.1",
     "commander": "^2.18.0",
-    "minimist": "^1.2.0",
-    "viola-server": "^0.0.0"
+    "minimist": "^1.2.0"
   }
 }

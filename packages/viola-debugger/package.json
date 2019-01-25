@@ -1,7 +1,7 @@
 {
-  "name": "viola-server",
+  "name": "viola-debugger",
   "version": "0.0.0",
-  "description": "node server for viola toolkit",
+  "description": "node-ws-server for viola debug",
   "main": "index.js",
   "scripts": {
     "test": "test"
@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/RonkTsang/Viola-toolkit/issues"
   },
-  "homepage": "https://github.com/RonkTsang/Viola-toolkit#readme"
+  "homepage": "https://github.com/RonkTsang/Viola-toolkit#readme",
+  "dependencies": {
+    "puppeteer": "^1.11.0"
+  }
 }
