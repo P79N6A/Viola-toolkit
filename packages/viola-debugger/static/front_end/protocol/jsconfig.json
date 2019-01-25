@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": [
+      "esnext",
+      "dom"
+    ]
+  },
+  "include": [
+    "**/*",
+    "../Runtime.js",
+    "../externs.js",
+    "../common/**/*",
+    "../text_utils/**/*",
+    "../platform/**/*",
+    "../host/**/*"
+  ],
+  "exclude": [
+    "../InspectorBackendCommands.js"
+  ]
+}

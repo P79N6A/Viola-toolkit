@@ -1,0 +1,57 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": [
+      "esnext",
+      "dom"
+    ]
+  },
+  "include": [
+    "**/*",
+    "../Runtime.js",
+    "../externs.js",
+    "../platform/**/*",
+    "../ui/**/*",
+    "../dom_extension/**/*",
+    "../common/**/*",
+    "../text_utils/**/*",
+    "../host/**/*",
+    "../components/**/*",
+    "../bindings/**/*",
+    "../sdk/**/*",
+    "../protocol/**/*",
+    "../services/**/*",
+    "../workspace/**/*",
+    "../data_grid/**/*",
+    "../source_frame/**/*",
+    "../text_editor/**/*",
+    "../cm/**/*",
+    "../persistence/**/*",
+    "../formatter/**/*",
+    "../object_ui/**/*",
+    "../workspace_diff/**/*",
+    "../diff/**/*"
+  ],
+  "exclude": [
+    "../SupportedCSSProperties.js",
+    "../InspectorBackendCommands.js",
+    "../text_editor/acorn/acorn.js",
+    "../cm_web_modes/css.js",
+    "../cm_web_modes/javascript.js",
+    "../cm_web_modes/xml.js",
+    "../cm_web_modes/htmlmixed.js",
+    "../cm_web_modes/htmlembedded.js",
+    "../cm/codemirror.js",
+    "../cm/multiplex.js",
+    "../cm/matchbrackets.js",
+    "../cm/closebrackets.js",
+    "../cm/markselection.js",
+    "../cm/comment.js",
+    "../cm/overlay.js",
+    "../cm/activeline.js",
+    "../cm/foldcode.js",
+    "../cm/foldgutter.js",
+    "../cm/brace-fold.js",
+    "../diff/diff_match_patch.js"
+  ]
+}

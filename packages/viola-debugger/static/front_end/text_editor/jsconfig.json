@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": [
+      "esnext",
+      "dom"
+    ]
+  },
+  "include": [
+    "**/*",
+    "../Runtime.js",
+    "../externs.js",
+    "../ui/**/*",
+    "../platform/**/*",
+    "../dom_extension/**/*",
+    "../common/**/*",
+    "../text_utils/**/*",
+    "../host/**/*",
+    "../cm/**/*"
+  ],
+  "exclude": [
+    "acorn/acorn.js",
+    "../cm_web_modes/css.js",
+    "../cm_web_modes/javascript.js",
+    "../cm_web_modes/xml.js",
+    "../cm_web_modes/htmlmixed.js",
+    "../cm_web_modes/htmlembedded.js",
+    "../cm/codemirror.js",
+    "../cm/multiplex.js",
+    "../cm/matchbrackets.js",
+    "../cm/closebrackets.js",
+    "../cm/markselection.js",
+    "../cm/comment.js",
+    "../cm/overlay.js",
+    "../cm/activeline.js",
+    "../cm/foldcode.js",
+    "../cm/foldgutter.js",
+    "../cm/brace-fold.js"
+  ]
+}

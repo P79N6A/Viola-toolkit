@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": [
+      "esnext",
+      "dom"
+    ]
+  },
+  "include": [
+    "**/*",
+    "../Runtime.js",
+    "../externs.js",
+    "../components/**/*",
+    "../bindings/**/*",
+    "../sdk/**/*",
+    "../common/**/*",
+    "../text_utils/**/*",
+    "../platform/**/*",
+    "../host/**/*",
+    "../protocol/**/*",
+    "../services/**/*",
+    "../workspace/**/*",
+    "../ui/**/*",
+    "../dom_extension/**/*"
+  ],
+  "exclude": [
+    "xterm.js/build/xterm.js",
+    "xterm.js/addons/fit/fit.js",
+    "../SupportedCSSProperties.js",
+    "../InspectorBackendCommands.js",
+    "../InspectorBackendCommands.js"
+  ]
+}

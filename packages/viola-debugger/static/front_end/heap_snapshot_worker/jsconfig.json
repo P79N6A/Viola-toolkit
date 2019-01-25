@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": [
+      "esnext",
+      "dom"
+    ]
+  },
+  "include": [
+    "**/*",
+    "../Runtime.js",
+    "../externs.js",
+    "../heap_snapshot_model/**/*",
+    "../platform/**/*",
+    "../common/**/*",
+    "../text_utils/**/*"
+  ],
+  "exclude": []
+}

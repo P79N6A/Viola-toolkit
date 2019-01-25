@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": [
+      "esnext",
+      "dom"
+    ]
+  },
+  "include": [
+    "**/*",
+    "../Runtime.js",
+    "../externs.js",
+    "../test_runner/**/*",
+    "../sdk/**/*",
+    "../common/**/*",
+    "../text_utils/**/*",
+    "../platform/**/*",
+    "../host/**/*",
+    "../protocol/**/*",
+    "../workspace/**/*",
+    "../ui/**/*",
+    "../dom_extension/**/*",
+    "../main/**/*",
+    "../extensions/**/*",
+    "../components/**/*",
+    "../bindings/**/*",
+    "../services/**/*",
+    "../browser_sdk/**/*",
+    "../persistence/**/*"
+  ],
+  "exclude": [
+    "ExtensionsNetworkTestRunner.js",
+    "ExtensionsTestRunner.js",
+    "../SupportedCSSProperties.js",
+    "../InspectorBackendCommands.js"
+  ]
+}

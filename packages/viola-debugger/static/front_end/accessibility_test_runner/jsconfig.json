@@ -1,0 +1,53 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": [
+      "esnext",
+      "dom"
+    ]
+  },
+  "include": [
+    "**/*",
+    "../Runtime.js",
+    "../externs.js",
+    "../test_runner/**/*",
+    "../sdk/**/*",
+    "../common/**/*",
+    "../text_utils/**/*",
+    "../platform/**/*",
+    "../host/**/*",
+    "../protocol/**/*",
+    "../workspace/**/*",
+    "../ui/**/*",
+    "../dom_extension/**/*",
+    "../main/**/*",
+    "../extensions/**/*",
+    "../components/**/*",
+    "../bindings/**/*",
+    "../services/**/*",
+    "../browser_sdk/**/*",
+    "../persistence/**/*",
+    "../accessibility/**/*",
+    "../elements/**/*",
+    "../inline_editor/**/*",
+    "../color_picker/**/*",
+    "../event_listeners/**/*",
+    "../object_ui/**/*",
+    "../formatter/**/*",
+    "../elements_test_runner/**/*",
+    "../animation/**/*"
+  ],
+  "exclude": [
+    "AccessibilityPaneTestRunner.js",
+    "../SupportedCSSProperties.js",
+    "../InspectorBackendCommands.js",
+    "../accessibility/ARIAProperties.js",
+    "../SupportedCSSProperties.js",
+    "../InspectorBackendCommands.js",
+    "../elements_test_runner/ElementsTestRunner.js",
+    "../elements_test_runner/EditDOMTestRunner.js",
+    "../elements_test_runner/SetOuterHTMLTestRunner.js",
+    "../elements_test_runner/ElementsPanelShadowSelectionOnRefreshTestRunner.js",
+    "../elements_test_runner/StylesUpdateLinksTestRunner.js"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": [
+      "esnext",
+      "dom"
+    ]
+  },
+  "include": [
+    "**/*",
+    "../Runtime.js",
+    "../externs.js",
+    "../platform/**/*",
+    "../text_utils/**/*",
+    "../cm_headless/**/*"
+  ],
+  "exclude": [
+    "acorn/acorn.js",
+    "acorn/acorn_loose.js",
+    "../cm_web_modes/css.js",
+    "../cm_web_modes/xml.js",
+    "../cm_headless/headlesscodemirror.js"
+  ]
+}

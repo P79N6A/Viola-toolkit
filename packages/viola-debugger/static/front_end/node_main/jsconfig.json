@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": [
+      "esnext",
+      "dom"
+    ]
+  },
+  "include": [
+    "**/*",
+    "../Runtime.js",
+    "../externs.js",
+    "../platform/**/*",
+    "../ui/**/*",
+    "../dom_extension/**/*",
+    "../common/**/*",
+    "../text_utils/**/*",
+    "../host/**/*",
+    "../components/**/*",
+    "../bindings/**/*",
+    "../sdk/**/*",
+    "../protocol/**/*",
+    "../services/**/*",
+    "../workspace/**/*"
+  ],
+  "exclude": [
+    "../SupportedCSSProperties.js",
+    "../InspectorBackendCommands.js"
+  ]
+}

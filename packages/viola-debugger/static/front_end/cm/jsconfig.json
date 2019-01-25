@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": [
+      "esnext",
+      "dom"
+    ]
+  },
+  "include": [
+    "**/*",
+    "../Runtime.js",
+    "../externs.js"
+  ],
+  "exclude": [
+    "codemirror.js",
+    "multiplex.js",
+    "matchbrackets.js",
+    "closebrackets.js",
+    "markselection.js",
+    "comment.js",
+    "overlay.js",
+    "activeline.js",
+    "foldcode.js",
+    "foldgutter.js",
+    "brace-fold.js"
+  ]
+}

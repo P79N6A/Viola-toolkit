@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": [
+      "esnext",
+      "dom"
+    ]
+  },
+  "include": [
+    "**/*",
+    "../Runtime.js",
+    "../externs.js",
+    "../worker_service/**/*"
+  ],
+  "exclude": [
+    "lighthouse/lighthouse-dt-bundle.js"
+  ]
+}

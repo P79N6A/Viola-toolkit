@@ -1,0 +1,47 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": [
+      "esnext",
+      "dom"
+    ]
+  },
+  "include": [
+    "**/*",
+    "../Runtime.js",
+    "../externs.js",
+    "../test_runner/**/*",
+    "../sdk/**/*",
+    "../common/**/*",
+    "../text_utils/**/*",
+    "../platform/**/*",
+    "../host/**/*",
+    "../protocol/**/*",
+    "../workspace/**/*",
+    "../ui/**/*",
+    "../dom_extension/**/*",
+    "../main/**/*",
+    "../extensions/**/*",
+    "../components/**/*",
+    "../bindings/**/*",
+    "../services/**/*",
+    "../browser_sdk/**/*",
+    "../persistence/**/*",
+    "../elements/**/*",
+    "../inline_editor/**/*",
+    "../color_picker/**/*",
+    "../event_listeners/**/*",
+    "../object_ui/**/*",
+    "../formatter/**/*",
+    "../animation/**/*"
+  ],
+  "exclude": [
+    "ElementsTestRunner.js",
+    "EditDOMTestRunner.js",
+    "SetOuterHTMLTestRunner.js",
+    "ElementsPanelShadowSelectionOnRefreshTestRunner.js",
+    "StylesUpdateLinksTestRunner.js",
+    "../SupportedCSSProperties.js",
+    "../InspectorBackendCommands.js"
+  ]
+}
