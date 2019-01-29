@@ -3,8 +3,14 @@
   "version": "0.0.0",
   "description": "node-ws-server for viola debug",
   "main": "index.js",
+  "bin": {
+    "violaDebug": "bin/debug"
+  },
   "scripts": {
-    "test": "test"
+    "test": "test",
+    "dev:debugJS": "webpack --display-modules --display-reasons --debug --config build/webpack.debug.js",
+    "dev:debugFD": "webpack -w --display-modules --display-reasons --debug --config build/webpack.frontEnd.js",
+    "build:debugFD": "webpack --display-modules --display-reasons --debug --config build/webpack.frontEnd.js"
   },
   "repository": {
     "type": "git",
@@ -20,6 +26,19 @@
   },
   "homepage": "https://github.com/RonkTsang/Viola-toolkit#readme",
   "dependencies": {
-    "puppeteer": "^1.11.0"
+    "@tencent/viola-framework": "^0.1.0",
+    "express": "^4.16.4",
+    "express-ws": "^4.0.0",
+    "puppeteer": "^1.11.0",
+    "qrcode": "^1.3.3",
+    "webpack": "^4.29.0",
+    "ws": "^6.1.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.2.2",
+    "@babel/preset-env": "^7.3.1",
+    "babel-loader": "^8.0.5",
+    "html-webpack-plugin": "^3.2.0",
+    "webpack-cli": "^3.2.1"
   }
 }
