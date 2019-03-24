@@ -3,5 +3,10 @@
   "private": true,
   "devDependencies": {
     "lerna": "^3.3.2"
+  },
+  "dependencies": {
+    "@tencent/viola-framework": "^0.1.0",
+    "ip": "^1.1.5",
+    "opn": "^5.4.0"
   }
 }

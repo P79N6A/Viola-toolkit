@@ -1,0 +1,25 @@
+#! /usr/bin/env node
+
+console.log('run at:', process.cwd())
+
+const fs = require('fs')
+const path = require('path')
+
+const program = require('commander');
+const packageInfo = require('../package.json')
+
+program.version(packageInfo.version)
+
+const cmdPath = path.resolve(__dirname, './cmd')
+
+try {
+  const cmds = fs.readdirSync(cmdPath)
+  cmds.forEach(cmd => {
+    require(`${cmdPath}/${cmd}`)(program)
+  })
+} catch (e) {
+  console.error(e)
+  process.exit(1)
+}
+
+program.parse(process.argv)

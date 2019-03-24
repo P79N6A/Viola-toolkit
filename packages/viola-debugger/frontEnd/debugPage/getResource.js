@@ -3,7 +3,7 @@ import {
 } from '../util'
 
 if (query.has('pageId')) {
-  insertScript(`/getBundle?pageId=${query.get('pageId')}`)
+  insertScript(`/getBundle/${query.get('pageId')}`)
 }
 
 function insertScript(url) {

@@ -81,35 +81,48 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 31);
+/******/ 	return __webpack_require__(__webpack_require__.s = 34);
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ 31:
+/***/ 32:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _globalVar__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(32);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "query", function() { return query; });
+// module.exports = {
+//   query: new URLSearchParams(location.search)
+// }
+var query = new URLSearchParams(location.search);
+
+/***/ }),
+
+/***/ 34:
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _globalVar__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(35);
 /* harmony import */ var _globalVar__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_globalVar__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _setCTX__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(33);
-/* harmony import */ var _getResource__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(40);
+/* harmony import */ var _setCTX__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(36);
+/* harmony import */ var _getResource__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(42);
 
 
 
 
 /***/ }),
 
-/***/ 32:
+/***/ 35:
 /***/ (function(module, exports) {
 
 window.ENV = 'web';
-window.__DEBUG__ = true;
-window.ViolaEnv = {
-  platform: 'iOS'
-};
-window.Promise = undefined;
+window.__DEBUG__ = true; // window.ViolaEnv = {
+//   platform: 'iOS'
+// }
+// window.Promise = undefined
+
 window.MessageChannel = undefined;
 window.Set = undefined;
 window.$update = {
@@ -130,35 +143,36 @@ window.$update = {
 
 window.$destroy = function (id) {
   window.destroyInstance(id || window.instanceId);
-};
-
-window.callNative = function (id, tasks) {
-  console.log('i got it');
-  console.log('id: ' + id);
-  console.log('task', tasks); // var t = JSON.stringify(tasks)
-  // wsTask.push(t)
-  // wsOpen && ws.send(t)
-  // var currentTask = tasks[0]
-  // var { module, args, method, component } = currentTask
-  // cmdList.append(currentTask)
-  // switch (module) {
-  //   case MODULE.DOM:
-  //     domModule[method](args)
-  //     break;
-  //   default:
-  //     console.info('not support now')
-  // }
-};
+}; // window.callNative = function (id, tasks) {
+//   console.log('i got it')
+//   console.log('id: ' + id)
+//   console.log('task', tasks)
+//   // var t = JSON.stringify(tasks)
+//   // wsTask.push(t)
+//   // wsOpen && ws.send(t)
+//   // var currentTask = tasks[0]
+//   // var { module, args, method, component } = currentTask
+//   // cmdList.append(currentTask)
+//   // switch (module) {
+//   //   case MODULE.DOM:
+//   //     domModule[method](args)
+//   //     break;
+//   //   default:
+//   //     console.info('not support now')
+//   // }
+// };
 
 /***/ }),
 
-/***/ 33:
+/***/ 36:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _tencent_viola_framework__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(34);
-/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(39);
+/* harmony import */ var _tencent_viola_framework__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(37);
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(32);
+/* harmony import */ var _module__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(43);
+
 
 
 var init = _tencent_viola_framework__WEBPACK_IMPORTED_MODULE_0__["default"].init,
@@ -166,14 +180,16 @@ var init = _tencent_viola_framework__WEBPACK_IMPORTED_MODULE_0__["default"].init
     getFramework = _tencent_viola_framework__WEBPACK_IMPORTED_MODULE_0__["default"].getFramework,
     createInstance = _tencent_viola_framework__WEBPACK_IMPORTED_MODULE_0__["default"].createInstance;
 init();
-window.createInstance = createInstance;
-window.instanceId = parseInt(Math.random() * 100);
-var CTX = createInstanceCtx(instanceId, {
-  url: 'test',
-  param: {
-    test: 1
-  }
-});
+registerModules(_module__WEBPACK_IMPORTED_MODULE_2__["default"]);
+
+if (typeof __CREATE_INSTANCE__ === 'undefined') {
+  window.__CREATE_INSTANCE__ = {
+    instanceId: parseInt(Math.random() * 100),
+    pageData: {}
+  };
+}
+
+var CTX = createInstanceCtx(__CREATE_INSTANCE__.instanceId, __CREATE_INSTANCE__.pageData);
 var fwName = _util__WEBPACK_IMPORTED_MODULE_1__["query"].get('fw') || 'vue';
 var fw = getFramework("/** @fw ".concat(fwName, " */"));
 fw.intoCTX && fw.intoCTX(CTX);
@@ -187,7 +203,7 @@ Object.keys(CTX).forEach(function (key) {
 
 /***/ }),
 
-/***/ 34:
+/***/ 37:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -5863,11 +5879,11 @@ var esIndex = {
 
 /* harmony default export */ __webpack_exports__["default"] = (esIndex);
 
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(35), __webpack_require__(36).setImmediate))
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(38), __webpack_require__(39).setImmediate))
 
 /***/ }),
 
-/***/ 35:
+/***/ 38:
 /***/ (function(module, exports) {
 
 var g;
@@ -5894,7 +5910,7 @@ module.exports = g;
 
 /***/ }),
 
-/***/ 36:
+/***/ 39:
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {var scope = (typeof global !== "undefined" && global) ||
@@ -5950,7 +5966,7 @@ exports._unrefActive = exports.active = function(item) {
 };
 
 // setimmediate attaches itself to the global object
-__webpack_require__(37);
+__webpack_require__(40);
 // On some exotic environments, it's not clear which object `setimmediate` was
 // able to install onto.  Search each possibility in the same order as the
 // `setimmediate` library.
@@ -5961,11 +5977,11 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
                          (typeof global !== "undefined" && global.clearImmediate) ||
                          (this && this.clearImmediate);
 
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(35)))
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(38)))
 
 /***/ }),
 
-/***/ 37:
+/***/ 40:
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global, process) {(function (global, undefined) {
@@ -6155,11 +6171,11 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
     attachTo.clearImmediate = clearImmediate;
 }(typeof self === "undefined" ? typeof global === "undefined" ? this : global : self));
 
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(35), __webpack_require__(38)))
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(38), __webpack_require__(41)))
 
 /***/ }),
 
-/***/ 38:
+/***/ 41:
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -6350,29 +6366,16 @@ process.umask = function() { return 0; };
 
 /***/ }),
 
-/***/ 39:
+/***/ 42:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "query", function() { return query; });
-// module.exports = {
-//   query: new URLSearchParams(location.search)
-// }
-var query = new URLSearchParams(location.search);
-
-/***/ }),
-
-/***/ 40:
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(39);
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(32);
 
 
 if (_util__WEBPACK_IMPORTED_MODULE_0__["query"].has('pageId')) {
-  insertScript("/getBundle?pageId=".concat(_util__WEBPACK_IMPORTED_MODULE_0__["query"].get('pageId')));
+  insertScript("/getBundle/".concat(_util__WEBPACK_IMPORTED_MODULE_0__["query"].get('pageId')));
 }
 
 function insertScript(url) {
@@ -6380,6 +6383,22 @@ function insertScript(url) {
   script.src = url;
   document.body.appendChild(script);
 }
+
+/***/ }),
+
+/***/ 43:
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = ({
+  http: ['request', 'requestGet', 'requestPost'],
+  cache: ['setItem', 'getItem', 'remove'],
+  association: ['bind'],
+  webSocket: ['on', 'close', 'WebSocket'],
+  bridge: ['invoke', 'getUserInfo', 'getDeviceInfo', 'setPopWidth', 'hasApp', 'getNetType', 'openApp', 'download', 'openUrl'],
+  QReport: ['reportT']
+});
 
 /***/ })
 

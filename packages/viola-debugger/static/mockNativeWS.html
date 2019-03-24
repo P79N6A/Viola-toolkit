@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  <div>
+    <span>url: </span>
+    <input type="text" id="url" style="width: 500px;">
+  </div>
+  <hr>
+  <div>
+    <button id="setup">setup WS</button>
+  </div>
+  <div>
+    <p>
+      <span>ws: </span>
+      <span id="wsUrl"></span>
+    </p>
+  </div>
+  <hr>
+  <div id="query"></div>
+  <hr>
+  <div>
+    <button id="login">native login</button>
+  </div>
+  <script>
+
+    var ViolaEnv = {
+      platform: 'iOS',
+      osVersion: '10.0.1',
+      appName: 'violaDemo',
+      appVersion: '0.1.0',
+      deviceWidth: '750',
+      deviceHeight: '800',
+      deviceModel: '7s',
+      dpToPxRatio: '2',
+      orientation: 'landscape',
+      iphoneX: 1,
+      statusBarHeight: '36'
+    }
+    const idProperty = '[[instanceId]]'
+    var viola = {
+      [idProperty]: '1',
+      getId () {
+        return this[idProperty]
+      },
+      pageData: {
+        url: "xxxx",
+        name: "pageName",
+        param: {},
+        cache: {
+            post: [
+                {id: 31231 , title: 'xxx' }
+            ]
+        },
+        uin: "1037568810"
+      }
+    }
+
+    var $ = (s) => document.querySelector(s)
+    
+    var inputDom = $('#url'),
+        wsDom = $('#wsUrl'),
+        queryDom = $('#query')
+
+    var wsUrl = '', query = null
+
+    $('#setup').onclick = function () {
+      var url = inputDom.value
+      if (url && (url = url.trim())) {
+        query = parseUrl(url)
+        wsUrl = query.ws + query.channel
+        wsDom.innerHTML = wsUrl
+        // queryDom.innerHTML = JSON.stringify(query, null, 2)
+        queryDom.innerHTML = Object.keys(query).reduce((html, key) => {
+          return html += `<p><span>${key}: </span><span>${query[key]}</span></p>`
+        }, '')
+        setupWS(wsUrl)
+      }
+    }
+
+    $('#login').onclick = function () {
+      if (ws) {
+        ws.sendTask('login', {
+          pageId: query.pageId,
+          entryId: query.entryId,
+          // offer Viola Environment
+          ViolaEnv,
+          viola: {
+            instanceId: viola.getId(),
+            pageData: viola.pageData
+          }
+        })
+      }
+    }
+
+    var ws = null
+    function setupWS (wsUrl) {
+      if (ws) {
+        ws.close()
+      }
+      ws = new WebSocket('ws://' + wsUrl);
+
+      ws.sendTask = function sendTask(type, data) {
+        this.send(JSON.stringify({
+          type, data
+        }))
+      }
+
+      // Connection opened
+      ws.addEventListener('open', function (event) {
+        console.log('open ws', wsUrl)
+      });
+
+      ws.addEventListener('close', function (event) {
+        console.log('close ws', wsUrl, event)
+        ws = null
+      });
+
+      // Listen for messages
+      ws.addEventListener('message', function (event) {
+        console.log('Message from server ', event.data);
+      });
+    }
+
+    function parseUrl (url) {
+      var queryString = url.split('?')[1]
+      if (queryString) {
+        return queryString.split('&').reduce((query, params) => {
+          if (params) {
+            var p = params.split('=')
+            query[p[0]] = p[1]
+          }
+          return query
+          }, Object.create(null))
+      } else {
+        return Object.create(null)
+      }
+    }
+  </script>
+</body>
+</html>

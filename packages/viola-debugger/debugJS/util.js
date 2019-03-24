@@ -14,5 +14,5 @@ function query() {
 }
 
 module.exports = {
-  query
+  query: query()
 }

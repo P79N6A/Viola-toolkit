@@ -86,38 +86,68 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _TYPES__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(31);
+/* harmony import */ var _util_index__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(32);
+/* harmony import */ var _ws__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(33);
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; var ownKeys = Object.keys(source); if (typeof Object.getOwnPropertySymbols === 'function') { ownKeys = ownKeys.concat(Object.getOwnPropertySymbols(source).filter(function (sym) { return Object.getOwnPropertyDescriptor(source, sym).enumerable; })); } ownKeys.forEach(function (key) { _defineProperty(target, key, source[key]); }); } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 var QRCode = __webpack_require__(1);
+
+
+
+ // window.__id__ = Date.now()
+
+window.entryWs = new _ws__WEBPACK_IMPORTED_MODULE_2__["default"]({
+  url: "ws://127.0.0.1:".concat(location.port, "/entry/"),
+  on: {
+    open: function open(ws) {
+      ws.sendTask(_TYPES__WEBPACK_IMPORTED_MODULE_0__["default"].LOGIN, {
+        channelId: _util_index__WEBPACK_IMPORTED_MODULE_1__["query"].get('channel')
+      });
+    },
+    msg: function msg(ws, _ref) {
+      var type = _ref.type,
+          data = _ref.data;
+
+      switch (type) {
+        case _TYPES__WEBPACK_IMPORTED_MODULE_0__["default"].LOGIN_SUCC:
+          window.__ENTRY_ID__ = data.entryId;
+          window.__VIOLA_DEBUG_SERVER_ENV__ = _objectSpread({}, data.env);
+          genQRCode(data.env);
+      }
+    }
+  }
+}); // // setup websocket
+// setupEntryWS(config)
 
 var $ = function $(s) {
   return document.querySelector(s);
 };
 
-var $app = $('#app'); // const $$ = (s) => document.querySelectorAll(s)
+var $$ = function $$(s) {
+  return document.querySelectorAll(s);
+};
 
-var searchParams = new URLSearchParams(location.search);
-var configList = ['ip', 'debugJS', 'ws', 'pages'];
-var config = configList.reduce(function (config, c) {
-  value = searchParams.has(c) ? searchParams.get(c) : undefined;
-
-  if (c === 'pages') {
-    config[c] = JSON.parse(value);
-  } else {
-    config[c] = value;
-  }
-
-  return config;
-}, Object.create(null));
-genQRCode(config);
+var $app = $('#app');
+/**
+ * generate QRCode
+ * @param {*} config 
+ */
 
 function genQRCode(config) {
   var pages = config.pages;
-  var pageIdList = Object.keys(pages);
+  var pageIdList = Array.isArray(pages) ? pages : Object.keys(pages);
   var docFrag = document.createDocumentFragment();
   var count = pageIdList.length;
+  var channelId = _util_index__WEBPACK_IMPORTED_MODULE_1__["query"].get('channel');
   pageIdList.forEach(function (pageId) {
-    var url = "".concat(config.debugJS, "?ws=").concat(config.ws, "&pageId=").concat(pageId);
+    var url = "".concat(config.debugJS, "?ws=").concat(config.ws, "&pageId=").concat(pageId, "&_rij_violaUrl=1&entryId=").concat(window.__ENTRY_ID__, "&channel=").concat(channelId);
     QRCode.toCanvas(url, function (error, canvas) {
       if (error) throw error;
       var link = document.createElement('a');
@@ -141,7 +171,8 @@ function genQRCode(config) {
 
 function renderQRCode(docFrag) {
   $app.appendChild(docFrag);
-}
+} // // setup websocket
+// setupEntryWS(config)
 
 /***/ }),
 /* 1 */
@@ -3630,6 +3661,99 @@ exports.render = function render (qrData, options, cb) {
   return svgTag
 }
 
+
+/***/ }),
+/* 31 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = ({
+  LOGIN: 'login',
+  LOGIN_SUCC: 'LOGIN_SUCC',
+  ADD_DEVICE: 'addDevice',
+  RM_DEVICE: 'rmDevice',
+  ROUTE_TO: 'routeTo'
+});
+
+/***/ }),
+/* 32 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "query", function() { return query; });
+// module.exports = {
+//   query: new URLSearchParams(location.search)
+// }
+var query = new URLSearchParams(location.search);
+
+/***/ }),
+/* 33 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var WS =
+/*#__PURE__*/
+function () {
+  function WS(_ref) {
+    var url = _ref.url,
+        on = _ref.on;
+
+    _classCallCheck(this, WS);
+
+    this.url = url;
+    this.on = on;
+    this.init();
+    return this;
+  }
+
+  _createClass(WS, [{
+    key: "init",
+    value: function init() {
+      var socket = new WebSocket(this.url);
+      this.socket = socket;
+
+      socket.sendTask = function (type, data) {
+        this.send(JSON.stringify({
+          type: type,
+          data: data
+        }));
+      };
+
+      this._listen();
+    }
+  }, {
+    key: "_listen",
+    value: function _listen() {
+      var _this = this;
+
+      var socket = this.socket;
+      socket.addEventListener('open', function (event) {
+        _this.on['open'] && _this.on['open'](socket, event);
+      }); // Listen for messages
+
+      socket.addEventListener('message', function (msg) {
+        _this.on['msg'] && _this.on['msg'](socket, JSON.parse(msg.data));
+        console.log('Message from server ', msg.data);
+      });
+      socket.addEventListener('close', function (msg) {
+        _this.on['close'] && _this.on['close'](socket, msg);
+      });
+    }
+  }]);
+
+  return WS;
+}();
+
+/* harmony default export */ __webpack_exports__["default"] = (WS);
 
 /***/ })
 /******/ ]);

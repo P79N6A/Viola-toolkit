@@ -3,6 +3,8 @@ import {
   query
 } from '../util'
 
+import modules from './module'
+
 let {
   init,
   createInstanceCtx,
@@ -12,13 +14,16 @@ let {
 
 init()
 
-window.createInstance = createInstance
-window.instanceId = parseInt(Math.random() * 100)
+registerModules(modules)
 
-const CTX = createInstanceCtx(instanceId, {
-  url: 'test',
-  param: { test: 1 }
-})
+if (typeof __CREATE_INSTANCE__ === 'undefined') {
+  window.__CREATE_INSTANCE__ = {
+    instanceId: parseInt(Math.random() * 100),
+    pageData: {}
+  }
+}
+
+const CTX = createInstanceCtx(__CREATE_INSTANCE__.instanceId, __CREATE_INSTANCE__.pageData)
 
 const fwName = query.get('fw') || 'vue'
 const fw = getFramework(`/** @fw ${fwName} */`)
