@@ -40,7 +40,7 @@ function startServer (config) {
 
   app.use('/', require('./router/page'))
   app.use('/', require('./router/ws'))
-  app.use('/entry', require('./router/entry'))
+  app.use('/channel', require('./router/channel'))
   app.use('/native', require('./router/native'))
   
   const pageMap = genIdwithMap(Array.isArray(config.targets) ? config.targets : [config.targets])

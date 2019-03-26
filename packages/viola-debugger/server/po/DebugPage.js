@@ -34,6 +34,12 @@ const PAGE_EVENTS = {
   CALL_NATIVE: 'callNative'
 }
 
+const PAGE_STATUS = {
+  OFFLINE: 'offline',
+  IDLE: 'idle',
+  CONNECT: 'connect'
+}
+
 class DebugPage extends EventEmitter {
   constructor ({
     peer,
@@ -49,6 +55,7 @@ class DebugPage extends EventEmitter {
     this._url = null
     this._globalVar = Object.create(null)
     this._hasLoadOnce = 0
+    this.status = PAGE_STATUS.OFFLINE
   }
 
   static async launch () {
@@ -88,10 +95,15 @@ class DebugPage extends EventEmitter {
     const url = getDebugPageUrl(this._pageId)
     await this._injectCallNative()
 
-    this.emit('beforeOpen', this.page)
+    this.emit(PAGE_EVENTS.BEFORE_OPEN, this.page)
 
     this._setupListener()
+    
     await this.page.goto(url)
+
+    log.title('open').info(this._pageId)
+
+    // this.setStatus(PAGE_STATUS.IDLE)
 
     this.target = this.page.target()
 
@@ -123,11 +135,6 @@ class DebugPage extends EventEmitter {
     return this.callJS(task)
   }
   async callJS (task) {
-    // let windowHandler = await this.page.evaluateHandle('window')
-    // await this.page.evaluate(async (window, task) => {
-    //   await window.callJS(task)
-    // }, windowHandler, task);
-
     // get viola and send
     let violaHandler = await this.page.evaluateHandle('viola')
     await this.page.evaluate(async (viola, task) => {
@@ -136,6 +143,7 @@ class DebugPage extends EventEmitter {
   }
 
   _setupListener () {
+    // fake reload
     this.page.on(NATIVE_PAGE_EVENTS.LOAD, (event) => {
       let eventName
       if (!this._hasLoadOnce) {
@@ -148,10 +156,14 @@ class DebugPage extends EventEmitter {
       this.emit(eventName, event)
     })
     
+    this.page.on(NATIVE_PAGE_EVENTS.CLOSE, e => {
+      this.setStatus(PAGE_STATUS.OFFLINE)
+      this.emit(NATIVE_PAGE_EVENTS.CLOSE, e)
+    })
+
     Object.keys(NATIVE_PAGE_EVENTS).forEach(eventName => {
-      eventName !== 'LOAD' && this.page.on(NATIVE_PAGE_EVENTS[eventName], (event) => {
-        log.info(eventName)
-        this.emit(eventName, event)
+      ['LOAD', 'CLOSE'].includes(eventName) || this.page.on(NATIVE_PAGE_EVENTS[eventName], (event) => {
+        this.emit(NATIVE_PAGE_EVENTS[eventName], event)
       })
     })
   }
@@ -159,8 +171,35 @@ class DebugPage extends EventEmitter {
   async refresh () {
     await this.page.reload()
   }
+
+  async close () {
+    await this.page.close()
+  }
+
+  setStatus (status) {
+    this.status = status
+  }
+
+  async idle () {
+    this.setStatus(PAGE_STATUS.IDLE)
+    /** @todo */
+    let window = await this.page.evaluateHandle('window')
+    this.page.evaluate(async (window) => {
+      await window.console.log('disconnect device')
+    }, window)
+  }
+
+  async connect () {
+    this.setStatus(PAGE_STATUS.CONNECT)
+    /** @todo */
+    let window = await this.page.evaluateHandle('window')
+    this.page.evaluate(async (window) => {
+      await window.console.log('on connect')
+    }, window)
+  }
 }
 
 DebugPage.EVENTS = PAGE_EVENTS
+DebugPage.STATUS = PAGE_STATUS
 
 module.exports = DebugPage

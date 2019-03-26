@@ -103,12 +103,13 @@ var QRCode = __webpack_require__(1);
 
  // window.__id__ = Date.now()
 
+var channelId = _util_index__WEBPACK_IMPORTED_MODULE_1__["query"].get('channel') || '';
 window.entryWs = new _ws__WEBPACK_IMPORTED_MODULE_2__["default"]({
-  url: "ws://127.0.0.1:".concat(location.port, "/entry/"),
+  url: "ws://127.0.0.1:".concat(location.port, "/channel/").concat(channelId),
   on: {
     open: function open(ws) {
       ws.sendTask(_TYPES__WEBPACK_IMPORTED_MODULE_0__["default"].LOGIN, {
-        channelId: _util_index__WEBPACK_IMPORTED_MODULE_1__["query"].get('channel')
+        channelId: channelId
       });
     },
     msg: function msg(ws, _ref) {
@@ -117,7 +118,7 @@ window.entryWs = new _ws__WEBPACK_IMPORTED_MODULE_2__["default"]({
 
       switch (type) {
         case _TYPES__WEBPACK_IMPORTED_MODULE_0__["default"].LOGIN_SUCC:
-          window.__ENTRY_ID__ = data.entryId;
+          window.__CHANNEL_ID__ = data.channelId;
           window.__VIOLA_DEBUG_SERVER_ENV__ = _objectSpread({}, data.env);
           genQRCode(data.env);
       }
@@ -141,20 +142,20 @@ var $app = $('#app');
  */
 
 function genQRCode(config) {
-  var pages = config.pages;
-  var pageIdList = Array.isArray(pages) ? pages : Object.keys(pages);
+  var peerMap = config.peerMap;
+  var peerIdList = Array.isArray(peerMap) ? peerMap : Object.keys(peerMap);
   var docFrag = document.createDocumentFragment();
-  var count = pageIdList.length;
+  var count = peerIdList.length;
   var channelId = _util_index__WEBPACK_IMPORTED_MODULE_1__["query"].get('channel');
-  pageIdList.forEach(function (pageId) {
-    var url = "".concat(config.debugJS, "?ws=").concat(config.ws, "&pageId=").concat(pageId, "&_rij_violaUrl=1&entryId=").concat(window.__ENTRY_ID__, "&channel=").concat(channelId);
+  peerIdList.forEach(function (peerId) {
+    var url = "".concat(config.debugJS, "?ws=").concat(config.ws, "&peerId=").concat(peerId, "&_rij_violaUrl=1&channel=").concat(channelId);
     QRCode.toCanvas(url, function (error, canvas) {
       if (error) throw error;
       var link = document.createElement('a');
       link.href = url;
       link.title = url;
       link.appendChild(canvas);
-      link.appendChild(document.createTextNode(pages[pageId]));
+      link.appendChild(document.createTextNode(peerMap[peerId]));
       docFrag.appendChild(link);
 
       if (! --count) {
@@ -3670,7 +3671,7 @@ exports.render = function render (qrData, options, cb) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ({
   LOGIN: 'login',
-  LOGIN_SUCC: 'LOGIN_SUCC',
+  LOGIN_SUCC: 'loginSucc',
   ADD_DEVICE: 'addDevice',
   RM_DEVICE: 'rmDevice',
   ROUTE_TO: 'routeTo'

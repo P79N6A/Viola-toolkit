@@ -89,7 +89,16 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 var _require = __webpack_require__(1),
-    query = _require.query;
+    query = _require.query,
+    confirm = _require.confirm,
+    alert = _require.alert;
+
+var MSG_TYPE = __webpack_require__(3);
+
+var _require2 = __webpack_require__(2),
+    genFncId = _require2.genFncId,
+    isDebugJSFncId = _require2.isDebugJSFncId,
+    actFncById = _require2.actFncById;
 
 var websocket = viola.requireAPI('webSocket');
 
@@ -106,76 +115,124 @@ viola.tasker.receive = function (tasks) {
   if (!Array.isArray(tasks)) {
     // transform to Array from String
     tasks = JSON.parse(tasks);
+  } // throw new Error(JSON.stringify(tasks))
+
+
+  var t = tasks[0];
+
+  if (Array.isArray(t.args) && t.args.length) {
+    var fncId = t.args[t.args.length - 1];
+
+    if (isDebugJSFncId(fncId)) {
+      actFncById(fncId, t.data);
+    } else {
+      websocket.sendTask(MSG_TYPE.CALL_JS, {
+        task: [t]
+      });
+    }
   }
-
-  var t = tasks[0]; // if (t.module == 'webSocket') {
-
-  old.call(viola.tasker, tasks); // }
-  // websocket.send(JSON.stringify(t));
-
-  websocket.sendTask('callJS', t);
 };
 
-var isCreateBody = 0;
-var wsUrl = query.ws + query.channel; // throw new Error(wsUrl)
+var isCreateBody = 0,
+    realBodyRef = -1,
+    fakeBodyRef = viola.document.body.ref;
+var wsUrl = query.ws + query.peerId; // throw new Error(wsUrl)
 
 websocket.WebSocket("ws://".concat(wsUrl), '');
-websocket.onopen(function (e) {
+websocket.onopen(genFncId(function (e) {
   websocket.sendTask('login', {
-    pageId: query.pageId,
-    entryId: query.entryId,
     ViolaEnv: ViolaEnv,
     viola: {
       instanceId: viola.getId(),
       pageData: viola.pageData
     }
   });
-});
-websocket.onmessage(function (e) {
+})); // error
+
+websocket.onerror(genFncId(function (e) {
+  throw new Error(e);
+})); // close
+
+websocket.onclose(genFncId(function (e) {
+  onWSClose();
+}));
+websocket.onmessage(genFncId(function (e) {
   var _JSON$parse = JSON.parse(e.data),
       type = _JSON$parse.type,
       data = _JSON$parse.data;
 
+  switch (type) {
+    case MSG_TYPE.CLOSE:
+      onWSClose();
+      break;
+
+    case MSG_TYPE.ERROR:
+      pageError(data);
+      break;
+
+    case MSG_TYPE.CALL_NATIVE:
+      callNatie(data);
+  }
+}));
+
+function onWSClose() {
+  confirm('DEBUG PAGE HAS BEEN STOPPED', function () {
+    viola.requireAPI('bridge').invoke({
+      ns: 'ui',
+      method: 'popBack'
+    });
+  }, function () {
+    alert('cancel');
+  });
+}
+
+function pageError(e) {
+  alert(e);
+}
+
+function callNatie(data) {
   if (data[0].method == 'createBody') {
-    viola.tasker.sendTask([{
-      module: 'dom',
-      method: 'addElement',
-      args: [viola.document.body.ref, data[0].args, 0]
-    }]); // viola.requireAPI('bridge').invoke({
-    //   ns: 'ui',
-    //   method: 'showDialog',
-    //   params: {
-    //     title: 'alert',
-    //     text: viola.document.body.ref,
-    //     needOkBtn: true,
-    //     needCancelBtn: false,
-    //   }
-    // })
-    // viola.tasker.sendTask([{
-    //   "module":"dom",
-    //   "method":"addElement",
-    //   "args": [
-    //     viola.document.body.ref,
-    //     {"ref":"1","type":"div","style":{"height":"200dp","backgroundColor":"black"}},
+    if (!isCreateBody) {
+      isCreateBody = 1;
+    } else {
+      viola.tasker.sendTask([{
+        module: 'dom',
+        method: 'removeElement',
+        args: [realBodyRef]
+      }]);
+    }
+
+    realBodyRef = data[0].args.ref; // viola.tasker.sendTask([{
+    //   module: 'dom',
+    //   method: 'addElement',
+    //   args: [
+    //     fakeBodyRef,
+    //     data[0].args,
     //     0
     //   ]
     // }])
-  } else {
-    viola.tasker.sendTask(data);
+
+    data[0] = {
+      module: 'dom',
+      method: 'addElement',
+      args: [fakeBodyRef, data[0].args, 0]
+    };
   }
-});
-websocket.onerror(function (e) {
-  throw new Error(e);
-});
-websocket.onclose(function (e) {});
+
+  viola.tasker.sendTask(data);
+}
+
 viola.document.body.setStyle({
-  backgroundColor: 'green'
+  backgroundColor: 'transparent'
 });
 viola.document.render();
 
 /***/ }),
 /* 1 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
+
+var _require = __webpack_require__(2),
+    genFncId = _require.genFncId;
 
 function query() {
   var queryString = viola.pageData.url.split('?')[1];
@@ -194,8 +251,102 @@ function query() {
   }
 }
 
+function alert(text) {
+  var b = viola.requireAPI('bridge');
+  b.invoke({
+    ns: 'ui',
+    method: 'showDialog',
+    params: {
+      title: '提示',
+      text: text,
+      needOkBtn: true,
+      okBtnText: '确定'
+    }
+  });
+}
+
+function confirm(text, succ, cancel) {
+  var b = viola.requireAPI('bridge');
+  var params = {
+    title: '提示',
+    text: text,
+    needOkBtn: true,
+    okBtnText: '确定',
+    needCancelBtn: false,
+    cancelBtnText: '取消'
+  };
+
+  if (cancel) {
+    params['needCancelBtn'] = true;
+  }
+
+  b.invoke({
+    ns: 'ui',
+    method: 'showDialog',
+    params: params
+  }, genFncId(function (result) {
+    if (cancel) {
+      if (result.data.button == 1) {
+        succ();
+      } else {
+        cancel();
+      }
+    } else {
+      succ();
+    }
+  }));
+}
+
 module.exports = {
-  query: query()
+  query: query(),
+  confirm: confirm,
+  alert: alert
+};
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports) {
+
+var PREFIX = '__VIOLA_DEBUG_JSFNC__';
+var PREFIX_REG = /^__VIOLA_DEBUG_JSFNC__/;
+var cb = {};
+viola.on('destroy', function () {
+  cb = null;
+});
+var _id = 1;
+
+function genFncId(fnc) {
+  var id = PREFIX + _id++;
+  cb[id] = fnc;
+  return id;
+}
+
+function isDebugJSFncId(fncName) {
+  return PREFIX_REG.test(fncName);
+}
+
+function actFncById(fncName, data) {
+  cb && cb[fncName] && cb[fncName](data);
+}
+
+module.exports = {
+  genFncId: genFncId,
+  isDebugJSFncId: isDebugJSFncId,
+  actFncById: actFncById
+};
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports) {
+
+module.exports = {
+  ERROR: 'error',
+  LOGIN: 'login',
+  LOGIN_SUCC: 'loginSucc',
+  CALL_JS: 'callJS',
+  CALL_NATIVE: 'callNative',
+  RELOAD: 'reload',
+  CLOSE: 'close'
 };
 
 /***/ })

@@ -73,7 +73,7 @@
       var url = inputDom.value
       if (url && (url = url.trim())) {
         query = parseUrl(url)
-        wsUrl = query.ws + query.channel
+        wsUrl = query.ws + query.peerId
         wsDom.innerHTML = wsUrl
         // queryDom.innerHTML = JSON.stringify(query, null, 2)
         queryDom.innerHTML = Object.keys(query).reduce((html, key) => {

@@ -107,7 +107,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _globalVar__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(35);
 /* harmony import */ var _globalVar__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_globalVar__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _setCTX__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(36);
-/* harmony import */ var _getResource__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(42);
+/* harmony import */ var _getResource__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(43);
 
 
 
@@ -171,7 +171,7 @@ window.$destroy = function (id) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _tencent_viola_framework__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(37);
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(32);
-/* harmony import */ var _module__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(43);
+/* harmony import */ var _module__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(42);
 
 
 
@@ -6371,6 +6371,22 @@ process.umask = function() { return 0; };
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony default export */ __webpack_exports__["default"] = ({
+  http: ['request', 'requestGet', 'requestPost'],
+  cache: ['setItem', 'getItem', 'remove'],
+  association: ['bind'],
+  webSocket: ['on', 'close', 'WebSocket'],
+  bridge: ['invoke', 'getUserInfo', 'getDeviceInfo', 'setPopWidth', 'hasApp', 'getNetType', 'openApp', 'download', 'openUrl'],
+  QReport: ['reportT']
+});
+
+/***/ }),
+
+/***/ 43:
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(32);
 
 
@@ -6383,22 +6399,6 @@ function insertScript(url) {
   script.src = url;
   document.body.appendChild(script);
 }
-
-/***/ }),
-
-/***/ 43:
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = ({
-  http: ['request', 'requestGet', 'requestPost'],
-  cache: ['setItem', 'getItem', 'remove'],
-  association: ['bind'],
-  webSocket: ['on', 'close', 'WebSocket'],
-  bridge: ['invoke', 'getUserInfo', 'getDeviceInfo', 'setPopWidth', 'hasApp', 'getNetType', 'openApp', 'download', 'openUrl'],
-  QReport: ['reportT']
-});
 
 /***/ })
 

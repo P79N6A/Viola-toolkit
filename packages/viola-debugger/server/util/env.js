@@ -16,7 +16,7 @@ function getEnvBaseInfo () {
     ip: addr,
     debugJS: `http://${addr}/debug.js`,
     ws: `${addr}/native/`,
-    pages: _map
+    pageMap: _map
   }
 
   return info

@@ -1,7 +1,11 @@
 const log = require('../util/log')
 
 class MSG {
-  constructor (type, data) {
+  constructor (msg) {
+    if (typeof msg === 'string') {
+      msg = JSON.parse(msg)
+    }
+    let {type, data} = msg
     this.type = type
     this.data = data
   }
@@ -15,6 +19,16 @@ class MSG {
     return JSON.stringify(this.toJSON())
   }
 
+  is (type) {
+    return new Promise((resolve, reject) => {
+      if (this.type === type) {
+        resolve(this.data)
+      } else {
+        reject()
+      }
+    })
+  }
+
   static genMsg (type, data) {
     if (type && data) {
       return JSON.stringify({type, data})
@@ -24,7 +38,7 @@ class MSG {
     }
   }
 
-  static parseMsg (msg) {
+  static parse (msg) {
     try {
       msg = JSON.parse(msg)
     } catch (e) {

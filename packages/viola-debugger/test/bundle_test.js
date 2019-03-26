@@ -163,8 +163,8 @@
   module.exports = {
     "test": {
       "style": {
-        "height": "500",
-        "backgroundColor": "black"
+        "height": "700",
+        "backgroundColor": "blue"
       },
       "scoped_id": "",
       "state": {},

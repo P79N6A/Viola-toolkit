@@ -1,3 +1,7 @@
+const {
+  genFncId
+} = require('./cbManager')
+
 function query() {
   var queryString = viola.pageData.url.split('?')[1]
   if (queryString) {
@@ -13,6 +17,52 @@ function query() {
   }
 }
 
+function alert (text) {
+  var b = viola.requireAPI('bridge')
+  b.invoke({
+    ns: 'ui',
+    method: 'showDialog',
+    params: {
+      title: '提示',
+      text,
+      needOkBtn: true,
+      okBtnText: '确定'
+    }
+  })
+}
+
+function confirm (text, succ, cancel) {
+  var b = viola.requireAPI('bridge')
+  let params = {
+    title: '提示',
+    text,
+    needOkBtn: true,
+    okBtnText: '确定',
+    needCancelBtn: false,
+    cancelBtnText: '取消'
+  }
+  if (cancel) {
+    params['needCancelBtn'] = true
+  }
+  b.invoke({
+    ns: 'ui',
+    method: 'showDialog',
+    params
+  }, genFncId(function(result) {
+    if (cancel) {
+      if (result.data.button == 1) {
+        succ()
+      } else {
+        cancel()
+      }
+    } else {
+      succ()
+    }
+  }))
+}
+
 module.exports = {
-  query: query()
+  query: query(),
+  confirm,
+  alert
 }

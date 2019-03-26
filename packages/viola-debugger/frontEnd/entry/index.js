@@ -9,19 +9,19 @@ import {
 import WS from './ws'
 
 // window.__id__ = Date.now()
-
+let channelId = query.get('channel') || ''
 window.entryWs = new WS({
-  url: `ws://127.0.0.1:${location.port}/entry/`,
+  url: `ws://127.0.0.1:${location.port}/channel/${channelId}`,
   on: {
     open (ws) {
       ws.sendTask(TYPES.LOGIN, {
-        channelId: query.get('channel')
+        channelId
       })
     },
     msg (ws, {type, data}) {
       switch (type) {
         case TYPES.LOGIN_SUCC:
-          window.__ENTRY_ID__ = data.entryId
+          window.__CHANNEL_ID__ = data.channelId
           window.__VIOLA_DEBUG_SERVER_ENV__ = {
             ...(data.env)
           }
@@ -43,20 +43,20 @@ const $app = $('#app')
  * @param {*} config 
  */
 function genQRCode (config) {
-  let pages = config.pages
-  let pageIdList = Array.isArray(pages) ? pages : Object.keys(pages)
+  let peerMap = config.peerMap
+  let peerIdList = Array.isArray(peerMap) ? peerMap : Object.keys(peerMap)
   let docFrag = document.createDocumentFragment()
-  let count = pageIdList.length
+  let count = peerIdList.length
   let channelId = query.get('channel')
-  pageIdList.forEach(pageId => {
-    let url = `${config.debugJS}?ws=${config.ws}&pageId=${pageId}&_rij_violaUrl=1&entryId=${window.__ENTRY_ID__}&channel=${channelId}`
+  peerIdList.forEach(peerId => {
+    let url = `${config.debugJS}?ws=${config.ws}&peerId=${peerId}&_rij_violaUrl=1&channel=${channelId}`
     QRCode.toCanvas(url, (error, canvas) => {
       if (error) throw error
       let link = document.createElement('a')
       link.href = url
       link.title = url
       link.appendChild(canvas)
-      link.appendChild(document.createTextNode(pages[pageId]))
+      link.appendChild(document.createTextNode(peerMap[peerId]))
       docFrag.appendChild(link)
       if(!(--count)) {
         renderQRCode(docFrag)

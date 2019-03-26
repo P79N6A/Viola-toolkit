@@ -19,6 +19,7 @@ const MSG = require('./MSG')
 const path = require('path')
 
 const PEER_NATIVE_WS_ID = '__PEER_NATIVE_WS_ID__'
+const NATIVE_WS_ID = '__NATIVE_WS_ID__'
 
 const peers = {}
 
@@ -27,24 +28,25 @@ const peers = {}
  */
 class DebugPeer {
   constructor({
-    host,
     pageId,
-    deviceWS,
-    globalVar
+    deviceWS
   }) {
     this.id = generateId('peer')
-    this._host = host
+    // this._host = host
     this._pageId = pageId
     this.debugPage = null
-    this._globalVar = {
-      ...globalVar
-    }
     this.deviceList = deviceWS ? [(deviceWS[PEER_NATIVE_WS_ID] = this.id) && deviceWS] : []
-    this.targetId = null
+    this.deviceMap = Object.create(null)
+    this.targetInfo = null
     this.historyTask = Object.create(null)
 
+    this._globalVar = {
+      ViolaEnv: null,
+      viola: null
+    }
+    this._hasOpen = false
+
     peers[this.id] = this
-    this.initPage()
   }
 
   static getPeerById (id) {
@@ -59,6 +61,8 @@ class DebugPeer {
   }
   
   async initPage () {
+
+    if (this.debugPage && this.debugPage.status !== DebugPage.STATUS.OFFLINE) return
     
     this.debugPage = new DebugPage({
       pageId: this._pageId,
@@ -73,10 +77,10 @@ class DebugPeer {
         })
       },
       [EVENTS.BEFORE_OPEN]: async () => {
+        log.title('before open').info('open')
         let globalVar = this._globalVar
-        this.debugPage.injectGlobalVar('__DEV_INFO__', {
-          peerId: this.id,
-          peerHost: this._host && this._host.id
+        await this.debugPage.injectGlobalVar('__DEV_INFO__', {
+          peerId: this.id
         })
         await this.debugPage.injectGlobalVar('ViolaEnv', globalVar.ViolaEnv)
         await this.debugPage.injectGlobalVar('__CREATE_INSTANCE__', {
@@ -93,7 +97,14 @@ class DebugPeer {
         this.resetHistory(false)
       },
       [EVENTS.PAGE_ERROR]: (e) => {
-        log.error(e)
+        let errorStack = e.message.split('at')
+        let errorMsg = errorStack[0] + errorStack[1].split('(')[0]
+        log.title('e.message').error(errorMsg)
+        
+        this.notifyDevice({
+          type: NATIVE_MSG_TYPE.ERROR,
+          task: errorMsg
+        })
       },
       [EVENTS.CLOSE]: () => {
         log.title('page close').info('close to reset historyList')
@@ -105,17 +116,31 @@ class DebugPeer {
     }
 
     Object.keys(EVENT_PROCESSER).forEach(eventName => {
+      log.title('listenTo').info(eventName)
       this.debugPage.on(eventName, EVENT_PROCESSER[eventName])
     })
 
-    const targetInfo = await this.debugPage.open()
-    log.title('_targetInfo').info(targetInfo)
+    this.targetInfo = await this.debugPage.open()
+    log.title('_targetInfo').info(this.targetInfo)
   }
 
   addDevice (deviceWS) {
     if (deviceWS) {
+      deviceWS[PEER_NATIVE_WS_ID] = this.id
+      deviceWS[NATIVE_WS_ID] = generateId('nativePeer')
+      
+      // store device websocket
       this.deviceList.push(deviceWS)
-      this.replayHistory(NATIVE_MSG_TYPE.CALL_NATIVE, deviceWS)
+
+      // Is the first device join in
+      if (this.deviceList.length === 1) {
+        this.initPage()
+        // this.debugPage.connect()
+      }
+      
+      if (this.hasHistory(NATIVE_MSG_TYPE.CALL_NATIVE)) {
+        this.replayHistory(NATIVE_MSG_TYPE.CALL_NATIVE, deviceWS)
+      }
     }
   }
 
@@ -125,6 +150,10 @@ class DebugPeer {
     if (ws && ((i = list.indexOf(ws)) !== -1)) {
       list.splice(i, 1)
       ws.close()
+      if (!list.length) {
+        // this.debugPage.setStatus('idle')
+        this.debugPage.idle()
+      }
     }
   }
 
@@ -132,6 +161,33 @@ class DebugPeer {
     while (this.deviceList.length) {
       this.deviceList.pop().close()
     }
+  }
+
+  setupWS (ws) {
+    ws.on('message', (msg) => {
+      const { type, data } = MSG.parse(msg)
+      switch (type) {
+        case NATIVE_MSG_TYPE.CALL_JS:
+          log.title('callJS').info(data)
+          this.notifyPage({
+            task: data.task
+          })
+          break
+        case NATIVE_MSG_TYPE.LOGIN:
+          log.info('login data', data)
+          /** @todo select ViolaEnv when debuging OR using worker as a sandbox */
+          if (!this._globalVar.ViolaEnv) {
+            this._globalVar.ViolaEnv = data.ViolaEnv
+            this._globalVar.viola = data.viola
+          }
+          this.addDevice(ws)
+          break;
+      }
+    });
+    ws.on('close', (code, msg) => {
+      log.info('device close')
+      this.rmDevice(ws)
+    })
   }
 
   notifyPage ({
@@ -149,6 +205,7 @@ class DebugPeer {
   }, isRecord = true) {
     let msg = MSG.genMsg(type, task)
     if (this.deviceList.length) {
+      log.title('send msg to device').info(msg)
       this.deviceList.forEach(ws => {
         ws.send(msg)
       })
@@ -158,7 +215,7 @@ class DebugPeer {
   }
 
   pushHistory (type, task) {
-    log.title('push history ' + type).info(task)
+    // log.title('push history ' + type).info(task)
     if (!this.historyTask[type]) {
       this.historyTask[type] = []
     }
@@ -170,9 +227,14 @@ class DebugPeer {
     }
   }
 
+  hasHistory (type) {
+    return (this.historyTask[type] && this.historyTask[type].length)
+  }
+
   replayHistory (type, ws) {
     let history = this.historyTask[type]
     if (history) {
+      log.title('replayHistory').info(MSG.genMsg(type, history))
       ws.send(MSG.genMsg(type, history))
     }
   }
@@ -188,11 +250,4 @@ class DebugPeer {
     this.historyTask = Object.create(null)
   }
 }
-
-// module.exports = {
-//   Peer,
-//   getTargetIdByPageId,
-//   getPeerByPageId,
-//   genPeersByMap
-// }
 module.exports = DebugPeer

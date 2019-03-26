@@ -2,57 +2,156 @@ const {
   generateId
 } = require('../util/id')
 
-const log = require('../util/log')
-
 const opn = require('opn')
+
+const {
+  getEnvBaseInfo
+} = require('../util/env')
+
+const {
+  getPageMap
+} = require('../util/pageManager')
+
+const log = require('../util/log')
 
 const {
   getEntryPageUrl
 } = require('../util/frontEndPage')
 
+const MSG = require('./MSG')
+
 const DebugPeer = require('./DebugPeer')
 
-const EntryPage = require('./EntryPage')
+// const {
+//   ENTRY_WS_ID
+// } = require('../const/entry')
 
-/**
- * @typedef {Object<string, Channel>} ChannelMap
- */
-/**
- * @type {ChannelMap} channelMap
- */
-const channelMap = Object.create(null)
+const channels = Object.create(null)
+
+const CHANNEL_ID = '__channel_id__'
+
+const TYPES = {
+  ERROR: 'error',
+  LOGIN: 'login',
+  LOGIN_SUCC: 'loginSucc',
+  ADD_DEVICE: 'addDevice',
+  RM_DEVICE: 'rmDevice',
+  ROUTE_TO: 'routeTo'
+}
 
 class Channel {
   constructor ({
-    pageMap
+    ws
   }) {
     this.id = generateId('channel')
-    channelMap[this.id] = this
-    
-    this.pageMap = pageMap
-
-    this.entryPages = Object.create(null)
-
-    // this.entryPages = Object.create(null)
-
-    this.nativePageWS = Object.create(null)
-
+    if (ws) {
+      this.ws = ws
+      this.setupWS(ws)
+    }
+    this.pageMap = getPageMap()
     this.peers = Object.create(null)
-
+    this._genPeers()
+    channels[this.id] = this
   }
 
-  static getChannelById (channelId) {
-    log.title('get ChannelMap').info(channelMap)
-    return channelMap[channelId]
+  static getChannelById (id) {
+    return channels[id]
   }
 
-  /**
-   * generate peers
-   */
-  _genPeerByMap (pageMap) {
-    pageMap && Object.keys(pageMap).forEach(id => {
-      this.peers[id] = new DebugPeer(this)
+  static getChannelByWS (ws) {
+    return Channel.getChannelById(ws[CHANNEL_ID])
+  }
+
+  static destroyChannelById (id) {
+    let entryPage = Channel.getChannelById(id)
+    return entryPage ? entryPage.destroy() : false
+  }
+
+  static destroyChannelByWS (ws) {
+    let entryPage = Channel.getChannelByWS(ws)
+    return entryPage ? entryPage.destroy() : false
+  }
+
+  destroy () {
+    channels[this.id] = null
+    this.peers = null
+    this.ws[CHANNEL_ID] = null
+    this.ws = null
+  }
+
+  _genPeers () {
+    Object.keys(this.pageMap).forEach(pageId => {
+      this.peers[pageId] = new DebugPeer({
+        pageId
+      })
     })
+  }
+
+  setupWS (ws) {
+    ws[CHANNEL_ID] = this.id
+    ws.on('message', (msg) => {
+      const {type, data} = MSG.parse(msg)
+      switch (type) {
+        case TYPES.LOGIN:
+          log.info('Entry Page login: ', data)
+          const env = getEnvBaseInfo()
+          
+          env.peerMap = Object.keys(this.peers).reduce((m, pageId) => {
+            return (m[this.peers[pageId].id] = env.pageMap[pageId]) && m
+          }, Object.create(null))
+
+          ws.send(MSG.genMsg(TYPES.LOGIN_SUCC, {
+            channelId: this.id,
+            env
+          }))
+          break
+
+        case TYPES.ROUTE_TO:
+          log.info('route to: ', data.pageId)
+      }
+      
+    })
+
+    ws.on('close', () => {
+      log.info('Entry Page Close')
+    })
+  }
+
+  hasWS () {
+    return !!this.ws
+  }
+
+  addDebugDevice (ws, {
+    pageId,
+    ViolaEnv,
+    viola
+  }) {
+    let peer = this.peers[pageId]
+    if (peer) {
+      // @todo replay history task
+      peer.addDevice(ws)
+    }
+    return peer
+  }
+
+  callJS ({
+    ws,
+    pageId,
+    task
+  }) {
+    let peer = this.peers[pageId]
+    if (peer) {
+      peer.notifyPage({task})
+    } else {
+      log.title('No peer found in CallJS').error({
+        entryPage: this.id,
+        pageId
+      })
+    }
+  }
+
+  genDebugJSPath (env) {
+
   }
 
   open () {
@@ -61,80 +160,6 @@ class Channel {
     opn(url, {
       app: 'google chrome'
     })
-  }
-
-  addEntryPage (ws) {
-    if (!ws) {
-      log.error('addEntryPageWS 参数错误: ws')
-      return null
-    }
-    const entryId = this.genEntryPageId()
-    const entryPage = new EntryPage({ id: entryId, ws })
-    log.title('generate EntryPage').info(entryPage.id)
-    return (this.entryPages[entryId] = entryPage)
-  }
-  rmEntryPage (entryPage) {
-    if (entryPage) {
-      log.title('remove EntryPage: ').info(entryPage.id)
-      entryPage.destroy()
-      this.entryPages[entryPage.id] = null
-    }
-  }
-
-  rmEntryPageByWS (ws) {
-    this.rmEntryPage(EntryPage.getEntryPageByWS(ws))
-  }
-
-  genEntryPageId () {
-    return generateId(this.id + '_entry')
-  }
-
-  getEntryPageById (entryId) {
-    return this.entryPages[entryId]
-  }
-
-  addDevice (ws, dataFromNative) {
-    let {
-      entryId
-    } = dataFromNative
-    const curEntryPage = this.entryPages[entryId]
-    if (curEntryPage) {
-      curEntryPage.addDebugDevice(ws, dataFromNative)
-    } else {
-      log.title('Not Found entryPage').error(Object.keys(this.entryPages), entryId)
-      ws.close(1003, 'Not Found entryPage')
-    }
-  }
-  rmDevice (ws) {
-    let {
-      entryId
-    } = dataFromNative
-    const curEntryPage = this.entryPages[entryId]
-    if (curEntryPage) {
-      curEntryPage.addDebugDevice(ws, dataFromNative)
-    } else {
-      log.title('Not Found entryPage').error(Object.keys(this.entryPages), entryId)
-      ws.close(1003, 'Not Found entryPage')
-    }
-  }
-
-  callJS ({
-    ws,
-    pageId,
-    entryId,
-    task
-  }) {
-    const curEntryPage = this.entryPages[entryId]
-    if (curEntryPage) {
-      curEntryPage.callJS({
-        ws,
-        pageId,
-        task
-      })
-    } else {
-      log.title('Not Found entryPage').error(Object.keys(this.entryPages), entryId)
-      ws.close(1003, 'Not Found entryPage')
-    }
   }
 }
 
