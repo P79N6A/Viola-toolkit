@@ -43,12 +43,18 @@ viola.tasker.receive = function (tasks) {
 }
 
 var isCreateBody = 0,
+    isReloading = 0,
     realBodyRef = -1,
     fakeBodyRef = viola.document.body.ref
+
+var pendingTask = []
+
+
 var wsUrl =  query.ws + query.peerId
 // throw new Error(wsUrl)
 websocket.WebSocket(`ws://${wsUrl}`,'');
 websocket.onopen(genFncId(function (e){
+  websocket.isOpen = 1
   websocket.sendTask('login', {
     ViolaEnv,
     viola: {
@@ -56,6 +62,10 @@ websocket.onopen(genFncId(function (e){
       pageData: viola.pageData
     }
   })
+  var task = null
+  while (task = pendingTask.shift()) {
+    websocket.sendTask(task.type, task.data)
+  }
 }));
 // error
 websocket.onerror(genFncId(function (e){
@@ -75,19 +85,21 @@ websocket.onmessage(genFncId(function (e){
     case MSG_TYPE.ERROR:
       pageError(data)
       break
+    case MSG_TYPE.RELOAD:
+      pageReload()
+      break
     case MSG_TYPE.CALL_NATIVE:
-      callNatie(data)
+      callNative(data)
   }
 }))
 
 function onWSClose () {
-  confirm('DEBUG PAGE HAS BEEN STOPPED', () => {
+  if (isReloading) return
+  confirm('链接已停止', () => {
     viola.requireAPI('bridge').invoke({
       ns: 'ui',
       method: 'popBack',
     })
-  }, function () {
-    alert('cancel')
   })
 }
 
@@ -95,18 +107,34 @@ function pageError (e) {
   alert(e)
 }
 
-function callNatie (data) {
+function pageReload (e) {
+  if (isCreateBody) {
+    isReloading = 1
+    var reload = viola.requireAPI('navigation').reloadPage
+    reload && reload()
+  }
+}
+
+function callNative (data) {
+  if (isReloading) return
+  let hasRM = 0
   if (data[0].method == 'createBody') {
     if (!isCreateBody) {
       isCreateBody = 1
     } else {
-      viola.tasker.sendTask([{
-        module: 'dom',
-        method: 'removeElement',
-        args: [realBodyRef]
-      }])
+      // hasRM = 1
+      // viola.tasker.sendTask([{
+      //   module: 'dom',
+      //   method: 'removeElement',
+      //   args: [realBodyRef]
+      // }])
+      // viola.document.body.setStyle({
+      //   backgroundColor: 'green'
+      // })
+      // throw new Error(realBodyRef + '  ' + fakeBodyRef)
+      // return
     }
-    realBodyRef = data[0].args.ref
+    // realBodyRef = data[0].args.ref
     // viola.tasker.sendTask([{
     //   module: 'dom',
     //   method: 'addElement',
@@ -116,22 +144,48 @@ function callNatie (data) {
     //     0
     //   ]
     // }])
-    data[0] = {
-      module: 'dom',
-      method: 'addElement',
-      args: [
-        fakeBodyRef,
-        data[0].args,
-        0
-      ]
-    }
-    
+    // data[0] = {
+    //   module: 'dom',
+    //   method: 'addElement',
+    //   args: [
+    //     fakeBodyRef,
+    //     data[0].args,
+    //     0
+    //   ]
+    // }
   }
   viola.tasker.sendTask(data)
 }
 
-viola.document.body.setStyle({
-  backgroundColor: 'transparent'
+// viola.document.body.setStyle({
+//   backgroundColor: 'transparent'
+// })
+
+viola.on('update', function update(args) {
+  if (isReloading) {
+    return
+  } else {
+    if (websocket.isOpen) {
+      websocket.sendTask(MSG_TYPE.UPDATE_INSTANCE, {
+        args
+      })
+    } else {
+      pendingTask.push({
+        type: MSG_TYPE.UPDATE_INSTANCE,
+        data: { args }
+      })
+    }
+  }
 })
 
-viola.document.render()
+viola.on('destroy', function destroy(args) {
+  if (isReloading) return
+  websocket.sendTask(MSG_TYPE.DESTROY_INSTANCE, {
+    args
+  })
+})
+
+// var reload = viola.requireAPI('navigation').reloadPage
+//       reload && reload()
+
+// viola.document.render()

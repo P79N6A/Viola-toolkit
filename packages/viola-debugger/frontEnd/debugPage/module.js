@@ -3,6 +3,6 @@ export default {
   cache: ['setItem', 'getItem', 'remove'],
   association: ['bind'],
   webSocket: ['on', 'close', 'WebSocket'],
-  bridge: ['invoke','getUserInfo', 'getDeviceInfo', 'setPopWidth', 'hasApp', 'getNetType', 'openApp', 'download', 'openUrl'],
+  bridge: ['invoke','getUserInfo', 'getDeviceInfo', 'setPopWidth', 'hasApp', 'getNetType', 'openApp', 'download', 'openUrl', 'requestDiscover'],
   QReport: ['reportT']
 }

@@ -1,20 +1,21 @@
 const chalk = require('chalk')
 
 const logTypeStyle = {
-  info: ['bgWhite', 'cyan'],
+  info: ['bgCyan', 'white'],
   error: ['bgRed', 'white'],
   warn: ['bgYellow', 'white'],
 }
 
-const LOG = {
-  _title: '',
-  title: function (title) {
-    this._title = title
-    return this
-  }
+let LOG = function LOG (...args) {
+  console.log(...args)
+  return this
 }
 
-function noop () {}
+LOG._title = ''
+LOG.title = function (title) {
+  this._title = title
+  return this
+}
 
 if (process.env.DEVELOPMENT) {
   function time () {
@@ -39,6 +40,7 @@ if (process.env.DEVELOPMENT) {
     }
   });
 } else {
+  function noop () {}
   Object.keys(logTypeStyle).forEach((type) => {
     LOG[type] = noop
   });

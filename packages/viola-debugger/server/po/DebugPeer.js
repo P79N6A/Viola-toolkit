@@ -11,6 +11,7 @@ const {
 const NATIVE_MSG_TYPE = require('../const/native')
 
 const DebugPage = require('./DebugPage')
+const DevtoolPage = require('./DevtoolPage')
 
 const EVENTS = DebugPage.EVENTS
 
@@ -35,6 +36,7 @@ class DebugPeer {
     // this._host = host
     this._pageId = pageId
     this.debugPage = null
+    this.devtoolPage = null
     this.deviceList = deviceWS ? [(deviceWS[PEER_NATIVE_WS_ID] = this.id) && deviceWS] : []
     this.deviceMap = Object.create(null)
     this.targetInfo = null
@@ -44,7 +46,8 @@ class DebugPeer {
       ViolaEnv: null,
       viola: null
     }
-    this._hasOpen = false
+    this._hasOpenPeer = false
+    this._hasOpenDevtool = false
 
     peers[this.id] = this
   }
@@ -62,11 +65,24 @@ class DebugPeer {
   
   async initPage () {
 
-    if (this.debugPage && this.debugPage.status !== DebugPage.STATUS.OFFLINE) return
-    
+    if (this.debugPage && this.debugPage.status !== DebugPage.STATUS.DISCONNECTED) return
+    const globalVar = this._globalVar,
+          ViolaEnv = globalVar.ViolaEnv
     this.debugPage = new DebugPage({
       pageId: this._pageId,
-      globalVar: this._globalVar
+      globalVar: {
+        __DEV_INFO__: {
+          peerId: this.id
+        },
+        ViolaEnv,
+        __CREATE_INSTANCE__: globalVar.viola
+      },
+      emulateOptions: {
+        'width': parseInt(ViolaEnv.deviceWidth),
+        'height': parseInt(ViolaEnv.deviceHeight),
+        'deviceScaleFactor': parseFloat(ViolaEnv.dpToPxRatio),
+        'userAgent': `${ViolaEnv.appName} ${ViolaEnv.appVersion}`
+      }
     })
 
     const EVENT_PROCESSER = {
@@ -76,18 +92,10 @@ class DebugPeer {
           task
         })
       },
-      [EVENTS.BEFORE_OPEN]: async () => {
-        log.title('before open').info('open')
-        let globalVar = this._globalVar
-        await this.debugPage.injectGlobalVar('__DEV_INFO__', {
-          peerId: this.id
-        })
-        await this.debugPage.injectGlobalVar('ViolaEnv', globalVar.ViolaEnv)
-        await this.debugPage.injectGlobalVar('__CREATE_INSTANCE__', {
-          instanceId: globalVar.viola.instanceId,
-          pageData: globalVar.viola.pageData
-        })
-      },
+      // [EVENTS.BEFORE_OPEN]: async (done) => {
+      //   log.title('before open').info('open')
+      //   log.info('after inject')
+      // },
       [EVENTS.RELOAD]: () => {
         log.info('reload to reset historyList')
         this.notifyDevice({
@@ -111,6 +119,7 @@ class DebugPeer {
         Object.keys(EVENT_PROCESSER).forEach(eventName => {
           this.debugPage.off(eventName, EVENT_PROCESSER[eventName])
         })
+        this._hasOpenPeer = false
         this.clearDevice()
       }
     }
@@ -120,11 +129,22 @@ class DebugPeer {
       this.debugPage.on(eventName, EVENT_PROCESSER[eventName])
     })
 
-    this.targetInfo = await this.debugPage.open()
-    log.title('_targetInfo').info(this.targetInfo)
+    let debugPageData = await this.debugPage.open()
+    let {
+      target
+    } = debugPageData
+    this._hasOpenPeer = true
+    this.initDevtool(target.targetId)
+    // log.title('_targetInfo').info(this.targetInfo)
   }
 
-  addDevice (deviceWS) {
+  async refreshPage () {
+    if (this._hasOpenPeer) {
+      this.debugPage.refresh()
+    }
+  }
+
+  async addDevice (deviceWS) {
     if (deviceWS) {
       deviceWS[PEER_NATIVE_WS_ID] = this.id
       deviceWS[NATIVE_WS_ID] = generateId('nativePeer')
@@ -133,13 +153,29 @@ class DebugPeer {
       this.deviceList.push(deviceWS)
 
       // Is the first device join in
-      if (this.deviceList.length === 1) {
+      if (!this._hasOpenPeer) {
         this.initPage()
         // this.debugPage.connect()
-      }
-      
-      if (this.hasHistory(NATIVE_MSG_TYPE.CALL_NATIVE)) {
-        this.replayHistory(NATIVE_MSG_TYPE.CALL_NATIVE, deviceWS)
+      } else if (this.deviceList.length === 1) {
+        log.info('entry again')
+        // entry again
+        this.refreshPage()
+      } else if (this.hasHistory(NATIVE_MSG_TYPE.CALL_NATIVE)) {
+        /** @todo use viola.document.body.toJSON to replace historyArray */
+        // this.replayHistory(NATIVE_MSG_TYPE.CALL_NATIVE, deviceWS)
+
+        /** @todo Don't make a task directly */
+        log.title('replay HISTORY').info()
+        let bodyJSON = await this.debugPage.getViolaBodyJSON()
+        this.notifyDevice({
+          type: NATIVE_MSG_TYPE.CALL_NATIVE,
+          task: [{
+            module: 'dom',
+            method: 'createBody',
+            args: bodyJSON
+          }],
+          ws: deviceWS
+        }, false)
       }
     }
   }
@@ -166,23 +202,37 @@ class DebugPeer {
   setupWS (ws) {
     ws.on('message', (msg) => {
       const { type, data } = MSG.parse(msg)
+      let history = null
       switch (type) {
-        case NATIVE_MSG_TYPE.CALL_JS:
-          log.title('callJS').info(data)
-          this.notifyPage({
-            task: data.task
-          })
-          break
+        // login to register this device
         case NATIVE_MSG_TYPE.LOGIN:
           log.info('login data', data)
-          /** @todo select ViolaEnv when debuging OR using worker as a sandbox */
+          /** @todo select ViolaEnv when debuging OR using worker as a SandBox */
           if (!this._globalVar.ViolaEnv) {
             this._globalVar.ViolaEnv = data.ViolaEnv
             this._globalVar.viola = data.viola
           }
           this.addDevice(ws)
           break;
+        // callJS
+        case NATIVE_MSG_TYPE.CALL_JS:
+          log.title('callJS').info(data)
+          this.debugPage.evaluateCallJS(history = data.task)
+          break
+        // updateInstance
+        case NATIVE_MSG_TYPE.UPDATE_INSTANCE:
+          log.title(type).info(data)
+          log.title('this.debugPage.status').info(this.debugPage.status)
+          this.debugPage.updateInstance(history = data.args)
+          break
+        // destroyInstance
+        case NATIVE_MSG_TYPE.DESTROY_INSTANCE:
+          log.title(type).info()
+          this.debugPage.destroyInstance()
+          history = {}
+          break
       }
+      history && this.pushHistory(type, history)
     });
     ws.on('close', (code, msg) => {
       log.info('device close')
@@ -191,6 +241,7 @@ class DebugPeer {
   }
 
   notifyPage ({
+    type,
     task
   }) {
     // console.log('notifyPage')
@@ -201,15 +252,19 @@ class DebugPeer {
 
   notifyDevice ({
     type,
-    task
+    task,
+    ws
   }, isRecord = true) {
     let msg = MSG.genMsg(type, task)
-    if (this.deviceList.length) {
+    if (ws) {
+      ws.send(msg)
+    } else if (this.deviceList.length) {
       log.title('send msg to device').info(msg)
       this.deviceList.forEach(ws => {
         ws.send(msg)
       })
     }
+    
     // history
     isRecord && this.pushHistory(type, task)
   }
@@ -248,6 +303,23 @@ class DebugPeer {
       )
     }
     this.historyTask = Object.create(null)
+  }
+
+  initDevtool (targetId) {
+    this.devtoolPage = new DevtoolPage({
+      targetId,
+      peerId: this.id
+    })
+    this.devtoolPage.open()
+    this._hasOpenDevtool = true
+    this.devtoolPage.on(DevtoolPage.EVENTS.CLOSE, () => {
+      this._hasOpenDevtool = false
+      this.debugPage
+    })
+  }
+
+  getDevtoolPage () {
+    return this.devtoolPage
   }
 }
 module.exports = DebugPeer

@@ -25,10 +25,13 @@ class Config {
 const debuggerConfig = new Config({
   port: 8086,
   targets: null,
-  open: true,
+  targetType: 'file',
+  devtools: true,
+  autoOpen: true,
   FE: {
     debugPage: 'debug.html',
-    entryPage: 'entry.html'
+    entryPage: 'entry.html',
+    devtool: 'front_end/inspector.html'
   }
 })
 

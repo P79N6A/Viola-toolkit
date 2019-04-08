@@ -11,7 +11,8 @@ const puppeteer = require('puppeteer')
 const config = require('../util/config').headless
 
 const {
-  getPathById
+  getPathById,
+  watchFileById
 } = require('../util/pageManager')
 
 const {
@@ -23,6 +24,7 @@ let browser = null
 const NATIVE_PAGE_EVENTS = {
   // @todo Is it right to define LOAD with domcontentloaded ??
   LOAD: 'domcontentloaded',
+  JSLOAD: 'load',
   CLOSE: 'close',
   PAGE_ERROR: 'pageerror'
 }
@@ -35,27 +37,38 @@ const PAGE_EVENTS = {
 }
 
 const PAGE_STATUS = {
+  DISCONNECTED: 'disconnected',
   OFFLINE: 'offline',
   IDLE: 'idle',
   CONNECT: 'connect'
 }
 
+const VIOLA = require('../const/viola')
+
 class DebugPage extends EventEmitter {
   constructor ({
     peer,
-    pageId
+    pageId,
+    globalVar,
+    emulateOptions,
+    watch = true
   }) {
     super()
     this.id = generateId('dp')
     this._peer = peer
     this._pageId = pageId
     this._targetPageUrl = getPathById(pageId)
+    this.watch = watch
     this.target = null
     this.page = null
     this._url = null
-    this._globalVar = Object.create(null)
+    this._globalVar = globalVar || Object.create(null)
     this._hasLoadOnce = 0
-    this.status = PAGE_STATUS.OFFLINE
+    this.status = PAGE_STATUS.DISCONNECTED
+    this.debugWSUrl = ''
+    this.emulateOptions = emulateOptions || null
+
+    this._pendingTaskList = []
   }
 
   static async launch () {
@@ -65,14 +78,14 @@ class DebugPage extends EventEmitter {
     try {
       browser = await puppeteer.launch({
         args: [`--remote-debugging-port=${port}`],
-        headless: false,
-        defaultViewport: {
-          width: 1000,
-          height: 800,
-          isMobile: true,
-          hasTouch: true
-        },
-        devtools: true
+        // headless: false,
+        // defaultViewport: {
+        //   width: 1000,
+        //   height: 800,
+        //   isMobile: true,
+        //   hasTouch: true
+        // },
+        // devtools: true
       });
       return browser
     } catch (e) {
@@ -95,20 +108,53 @@ class DebugPage extends EventEmitter {
     const url = getDebugPageUrl(this._pageId)
     await this._injectCallNative()
 
+    // Notice: page before open EVENT! Async!
     this.emit(PAGE_EVENTS.BEFORE_OPEN, this.page)
 
+    // inject global variable sync 
+    Object.keys(this._globalVar).forEach(async (key) => {
+      await this.injectGlobalVar(key, this._globalVar[key])
+    })
+
+    log.info('after emit')
+
     this._setupListener()
+
+    await this.emulate()
     
     await this.page.goto(url)
 
+    this._watchFile()
+
     log.title('open').info(this._pageId)
 
-    // this.setStatus(PAGE_STATUS.IDLE)
-
     this.target = this.page.target()
+    // this.debugWSUrl = getDebugPageWS()
 
-    return this.target._targetInfo
+    return {
+      target: this.target._targetInfo
+    }
   }
+
+  async emulate () {
+    if (this.emulateOptions) {
+      let opt = this.emulateOptions
+      await this.page.emulate({
+        viewport: {
+          width: opt.width,
+          height: opt.height,
+          deviceScaleFactor: opt.deviceScaleFactor || 2,
+          isMobile: true,
+          hasTouch: true,
+          isLandscape: false
+        },
+        userAgent: opt.userAgent
+      })
+      // await this.page.emulate(iPhone)
+      // log.title('emulate').info(iPhone)
+    }
+  }
+
   async _injectCallNative () {
     return await this.injectGlobalFnc('callNative', this.callNative.bind(this))
   }
@@ -117,9 +163,9 @@ class DebugPage extends EventEmitter {
   }
   async injectGlobalVar (key, value) {
     log.title('inject Global Var').info(key, value)
-    if (this._globalVar[key]) {
-      log.title('injectGlobalVar warning: duplicate variable').log(key, value)
-    }
+    // if (this._globalVar[key]) {
+    //   log.title('injectGlobalVar warning: duplicate variable').info(key, value)
+    // }
     await this.page.evaluateOnNewDocument((key, value) => {
       window[key] = value
     }, key, value)
@@ -130,16 +176,82 @@ class DebugPage extends EventEmitter {
       instanceId,
       task
     })
+    if (task[0].method === 'createBody') {
+      this._actPendingViolaTask()
+    }
   }
   async evaluateCallJS (task) {
     return this.callJS(task)
   }
   async callJS (task) {
     // get viola and send
-    let violaHandler = await this.page.evaluateHandle('viola')
-    await this.page.evaluate(async (viola, task) => {
-      await viola.tasker.receive(task)
-    }, violaHandler, task);
+    this._evalViolaApi([VIOLA.PROPERTY.TASKER, VIOLA.API.RECEIVE], task)
+  }
+  updateInstance (data) {
+    // get viola and send
+    this.emitInstanceEvent(VIOLA.EVENTS.UPDATE, data)
+  }
+  destroyInstance () {
+    this.emitInstanceEvent(VIOLA.EVENTS.DESTROY)
+  }
+  async emitInstanceEvent (type, data) {
+    // get viola and send
+    this._evalViolaApi(VIOLA.API.ACT, type, data)
+  }
+  /**
+   * get body JSON
+   * @returns {object<string,any>}
+   */
+  async getViolaBodyJSON () {
+    // let violaHandler = await this.page.evaluateHandle('viola')
+    let violaHandler = await this._getViolaHandler()
+    let bodyJSON = await this.page.evaluate(async (viola) => viola.document.body.toJSON(), violaHandler)
+    violaHandler.dispose()
+    log.title('bodyJSON').info(bodyJSON)
+    return bodyJSON
+  }
+
+  async _getViolaHandler () {
+    let violaHandler
+    if (this.page) {
+      violaHandler = await this.page.evaluateHandle('viola')
+    }
+    return violaHandler
+  }
+
+  async _evalViolaApi (fnc, ...args) {
+    log.title('_evalViolaApi').warn(fnc, args)
+    let violaHandler = await this._getViolaHandler()
+    log.title('violaHandler').warn(Object.prototype.toString.call(violaHandler))
+    log.title('page').warn(Object.prototype.toString.call(this.page))
+    if (violaHandler) {
+      await this.page.evaluate(async (viola, fnc, args) => {
+        if (Array.isArray(fnc)) {
+          let evalFncName = fnc.pop()
+          let evalFncHost = (fnc.reduce((viola, fncName) => {
+            return viola[fncName]
+          }, viola))
+          evalFncHost[evalFncName](...args)
+        } else {
+          viola[fnc](...args)
+        }
+      }, violaHandler, fnc, args);
+    } else {
+      log.title('violaHandler').warn(typeof violaHandler)
+      this._pendingTaskList.push({
+        fnc,
+        args
+      })
+    }
+  }
+
+  async _actPendingViolaTask () {
+    if (this._pendingTaskList[0]) {
+      while (this._pendingTaskList[0]) {
+        let { fnc, args } = this._pendingTaskList.shift()
+        await this._evalViolaApi(fnc, ...args)
+      }
+    }
   }
 
   _setupListener () {
@@ -157,15 +269,27 @@ class DebugPage extends EventEmitter {
     })
     
     this.page.on(NATIVE_PAGE_EVENTS.CLOSE, e => {
-      this.setStatus(PAGE_STATUS.OFFLINE)
+      this.setStatus(PAGE_STATUS.DISCONNECTED)
       this.emit(NATIVE_PAGE_EVENTS.CLOSE, e)
     })
 
+    // this.page.on(NATIVE_PAGE_EVENTS.JSLOAD, e => {
+    //   this._actPendingViolaTask()
+    // })
+
     Object.keys(NATIVE_PAGE_EVENTS).forEach(eventName => {
-      ['LOAD', 'CLOSE'].includes(eventName) || this.page.on(NATIVE_PAGE_EVENTS[eventName], (event) => {
+      ['LOAD', 'CLOSE', 'JSLOAD'].includes(eventName) || this.page.on(NATIVE_PAGE_EVENTS[eventName], (event) => {
         this.emit(NATIVE_PAGE_EVENTS[eventName], event)
       })
     })
+  }
+
+  _watchFile () {
+    if (this.watch) {
+      watchFileById(this._pageId, () => {
+        this.refresh()
+      })
+    }
   }
 
   async refresh () {
@@ -178,6 +302,10 @@ class DebugPage extends EventEmitter {
 
   setStatus (status) {
     this.status = status
+  }
+
+  isConnected () {
+    return this.status !== PAGE_STATUS.DISCONNECTED
   }
 
   async idle () {

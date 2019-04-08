@@ -1,6 +1,6 @@
-// const {
-//   startDebug
-// } = require('../../index')
+const {
+  parseToBoolean
+} = require('../util/index')
 
 module.exports = function inspect(program) {
   program
@@ -25,7 +25,7 @@ module.exports = function inspect(program) {
         process.env.DEVELOPMENT = true
       }
       config.port = cmd.port
-      config.autoOpen = cmd.open
+      config.autoOpen = parseToBoolean(cmd.open)
       require('../../index').startDebug(config)
     })
 }

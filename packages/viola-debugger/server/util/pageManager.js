@@ -1,3 +1,5 @@
+const fs = require('fs')
+
 let __pageid__ = 1
 
 let pageMap = Object.create(null)
@@ -26,9 +28,25 @@ function getPathById (pageId) {
   return pageMap[pageId]
 }
 
+function watchFileById(pageId, listener) {
+  let timer = null, filePath
+  if (filePath = getPathById(pageId)) {
+    fs.watch(filePath, (eventType, filename) => {
+      if (timer) {
+        return
+      }
+      timer = setTimeout(() => {
+        timer = null
+      }, 2000)
+      listener(eventType, filename)
+    })
+  }
+}
+
 module.exports = {
   genId,
   genIdwithMap,
   getPathById,
-  getPageMap
+  getPageMap,
+  watchFileById
 }
