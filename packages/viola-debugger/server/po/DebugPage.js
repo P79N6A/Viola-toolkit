@@ -63,10 +63,12 @@ class DebugPage extends EventEmitter {
     this.page = null
     this._url = null
     this._globalVar = globalVar || Object.create(null)
-    this._hasLoadOnce = 0
     this.status = PAGE_STATUS.DISCONNECTED
     this.debugWSUrl = ''
     this.emulateOptions = emulateOptions || null
+    
+    this._hasLoadOnce = false
+    this._needEmitReload = true
 
     this._pendingTaskList = []
   }
@@ -118,12 +120,14 @@ class DebugPage extends EventEmitter {
 
     log.info('after emit')
 
-    this._setupListener()
-
+    
     await this.emulate()
     
+    
     await this.page.goto(url)
-
+    
+    this._setupListener()
+    
     this._watchFile()
 
     log.title('open').info(this._pageId)
@@ -214,6 +218,8 @@ class DebugPage extends EventEmitter {
   async _getViolaHandler () {
     let violaHandler
     if (this.page) {
+      // await this.page.waitForNavigation()
+      log.title('this.page').error(this.page)
       violaHandler = await this.page.evaluateHandle('viola')
     }
     return violaHandler
@@ -224,7 +230,7 @@ class DebugPage extends EventEmitter {
     let violaHandler = await this._getViolaHandler()
     log.title('violaHandler').warn(Object.prototype.toString.call(violaHandler))
     log.title('page').warn(Object.prototype.toString.call(this.page))
-    if (violaHandler) {
+    if (violaHandler && !this._isReloading) {
       await this.page.evaluate(async (viola, fnc, args) => {
         if (Array.isArray(fnc)) {
           let evalFncName = fnc.pop()
@@ -258,14 +264,20 @@ class DebugPage extends EventEmitter {
     // fake reload
     this.page.on(NATIVE_PAGE_EVENTS.LOAD, (event) => {
       let eventName
-      if (!this._hasLoadOnce) {
-        this._hasLoadOnce = 1
-        eventName = NATIVE_PAGE_EVENTS.LOAD
-      } else {
+      // if (!this._hasLoadOnce) {
+      //   this._hasLoadOnce = 1
+      //   eventName = NATIVE_PAGE_EVENTS.LOAD
+      // } else {
         eventName = PAGE_EVENTS.RELOAD
-      }
+      // }
       log.title('PAGE_EVENTS LOAD TYPE').info(eventName)
-      this.emit(eventName, event)
+      if (this._needEmitReload) {
+        this.emit(eventName, event)
+      } else {
+        // reset
+        this._needEmitReload = true
+      }
+      this._isReloading = false
     })
     
     this.page.on(NATIVE_PAGE_EVENTS.CLOSE, e => {
@@ -292,7 +304,10 @@ class DebugPage extends EventEmitter {
     }
   }
 
-  async refresh () {
+  async refresh (needEmitReload = true) {
+    this._needEmitReload = needEmitReload
+    this._isReloading = true
+    log.title('refreshing').warn()
     await this.page.reload()
   }
 
@@ -309,12 +324,13 @@ class DebugPage extends EventEmitter {
   }
 
   async idle () {
+    log.title('IDLE').warn()
     this.setStatus(PAGE_STATUS.IDLE)
     /** @todo */
-    let window = await this.page.evaluateHandle('window')
-    this.page.evaluate(async (window) => {
-      await window.console.log('disconnect device')
-    }, window)
+    // let window = await this.page.evaluateHandle('window')
+    // this.page.evaluate(async (window) => {
+    //   await window.console.log('disconnect device')
+    // }, window)
   }
 
   async connect () {

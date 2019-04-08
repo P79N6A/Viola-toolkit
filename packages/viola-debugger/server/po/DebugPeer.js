@@ -48,6 +48,7 @@ class DebugPeer {
     }
     this._hasOpenPeer = false
     this._hasOpenDevtool = false
+    this._reload = false
 
     peers[this.id] = this
   }
@@ -98,10 +99,12 @@ class DebugPeer {
       // },
       [EVENTS.RELOAD]: () => {
         log.info('reload to reset historyList')
+        this._reload = true
         this.notifyDevice({
           type: NATIVE_MSG_TYPE.RELOAD,
           task: {}
         }, false)
+        this.deviceList.length = 0
         this.resetHistory(false)
       },
       [EVENTS.PAGE_ERROR]: (e) => {
@@ -140,7 +143,7 @@ class DebugPeer {
 
   async refreshPage () {
     if (this._hasOpenPeer) {
-      this.debugPage.refresh()
+      this.debugPage.refresh(false)
     }
   }
 
@@ -157,13 +160,18 @@ class DebugPeer {
         this.initPage()
         // this.debugPage.connect()
       } else if (this.deviceList.length === 1) {
-        log.info('entry again')
-        // entry again
-        this.refreshPage()
+        if (this._reload) {
+          log.info('reload')
+          this.replayHistory(NATIVE_MSG_TYPE.CALL_NATIVE, deviceWS)
+        } else {
+          log.info('entry again')
+          // entry again
+          this.refreshPage()
+        }
       } else if (this.hasHistory(NATIVE_MSG_TYPE.CALL_NATIVE)) {
         /** @todo use viola.document.body.toJSON to replace historyArray */
         // this.replayHistory(NATIVE_MSG_TYPE.CALL_NATIVE, deviceWS)
-
+        log.title('replay HISTORY DEVIVE').info(this.deviceList.length)
         /** @todo Don't make a task directly */
         log.title('replay HISTORY').info()
         let bodyJSON = await this.debugPage.getViolaBodyJSON()
@@ -189,6 +197,7 @@ class DebugPeer {
       if (!list.length) {
         // this.debugPage.setStatus('idle')
         this.debugPage.idle()
+        this._reload = 0
       }
     }
   }
@@ -314,7 +323,7 @@ class DebugPeer {
     this._hasOpenDevtool = true
     this.devtoolPage.on(DevtoolPage.EVENTS.CLOSE, () => {
       this._hasOpenDevtool = false
-      this.debugPage
+      // this.debugPage
     })
   }
 

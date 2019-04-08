@@ -64,7 +64,7 @@ class DevtoolPage extends EventEmitter {
     /** @todo catch the msg and try to reuse it */
     ws.on('message', function(msg) {
       wsToHeadless.send(msg)
-      // console.log('from Devtool', msg);
+      console.log('from Devtool', msg);
     });
 
     ws.on('close', () => {

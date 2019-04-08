@@ -5,15 +5,15 @@ viola.document.body.appendChild(viola.document.createElement('div', {
     backgroundColor: 'yellow'
   },
   events: {
-    click (e) {
-      // console.log(e)
+    click: function (e) {
+      var color = 'red'
+      if (this.style.backgroundColor === 'red') {
+        color = 'yellow'
+      }
       this.setStyle({
-        backgroundColor: 'yellow'
+        backgroundColor: color
       })
       tip(JSON.stringify(e.frame))
-      // var reload = viola.requireAPI('navigation').reloadPage
-      // reload && reload()
-      // e.stopPropagation()
     }
   }
 }))

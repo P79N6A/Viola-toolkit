@@ -37,7 +37,7 @@ function watchFileById(pageId, listener) {
       }
       timer = setTimeout(() => {
         timer = null
-      }, 2000)
+      }, 5000)
       listener(eventType, filename)
     })
   }
