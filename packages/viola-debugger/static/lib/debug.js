@@ -7158,9 +7158,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ({
   text: ['animate'],
   div: ['animate'],
-  list: ['scrollTo', 'loadMoreFinish'],
+  list: ['scrollTo', 'loadMoreFinish', 'scrollToTop', 'getPosition'],
+  scroller: ['scrollTo', 'loadMoreFinish', 'scrollToTop', 'getPosition'],
   refresh: ['refreshFinish', 'refresh'],
-  qrefresh: ['refresh', 'refreshFinish']
+  'footer-refresh': ['refreshFinish'],
+  'page-slider': ['setIndex', 'next', 'prev', 'exchange'],
+  qrefresh: ['refresh', 'refreshFinish'],
+  'kd-video': ['play', 'pause', 'stop', 'open', 'setVolume', 'getCurrentTime', 'isMuted', 'isEnded', 'isPaused', 'setMuted', 'isPlaying'],
+  cell: ['animate'],
+  input: ['focus', 'blur', 'setText', 'getText'],
+  gif: ['play'],
+  modal: ['show', 'hide']
 });
 
 /***/ }),
