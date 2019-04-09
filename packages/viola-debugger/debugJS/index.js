@@ -1,7 +1,8 @@
 const {
   query,
   confirm,
-  alert
+  alert,
+  tip
 } = require('./util')
 
 const MSG_TYPE = require('../server/const/native')
@@ -110,57 +111,26 @@ function pageError (e) {
 function pageReload (e) {
   if (isCreateBody) {
     isReloading = 1
+    tip('try to reload')
     var reload = viola.requireAPI('navigation').reloadPage
     reload && reload()
+  } else {
+    tip('has not createBody')
   }
 }
 
 function callNative (data) {
   if (isReloading) return
-  let hasRM = 0
-  if (data[0].method == 'createBody') {
-    if (!isCreateBody) {
-      isCreateBody = 1
-    } else {
-      // hasRM = 1
-      // viola.tasker.sendTask([{
-      //   module: 'dom',
-      //   method: 'removeElement',
-      //   args: [realBodyRef]
-      // }])
-      // viola.document.body.setStyle({
-      //   backgroundColor: 'green'
-      // })
-      // throw new Error(realBodyRef + '  ' + fakeBodyRef)
-      // return
-    }
-    // realBodyRef = data[0].args.ref
-    // viola.tasker.sendTask([{
-    //   module: 'dom',
-    //   method: 'addElement',
-    //   args: [
-    //     fakeBodyRef,
-    //     data[0].args,
-    //     0
-    //   ]
-    // }])
-    // data[0] = {
-    //   module: 'dom',
-    //   method: 'addElement',
-    //   args: [
-    //     fakeBodyRef,
-    //     data[0].args,
-    //     0
-    //   ]
-    // }
+  // let hasRM = 0
+  let tasks = Array.isArray(data) ? data : [data]
+  let task
+  while ((task = tasks.shift())) {
+    (task.method === MSG_TYPE.METHOD.CREATE_BODY) && (isCreateBody = 1)
+    viola.tasker.sendTask([task])
   }
-  viola.tasker.sendTask(data)
 }
 
-// viola.document.body.setStyle({
-//   backgroundColor: 'transparent'
-// })
-
+// Update Instance
 viola.on('update', function update(args) {
   if (isReloading) {
     return
@@ -178,14 +148,10 @@ viola.on('update', function update(args) {
   }
 })
 
+// Destroy Instance
 viola.on('destroy', function destroy(args) {
   if (isReloading) return
   websocket.sendTask(MSG_TYPE.DESTROY_INSTANCE, {
     args
   })
 })
-
-// var reload = viola.requireAPI('navigation').reloadPage
-//       reload && reload()
-
-// viola.document.render()

@@ -61,8 +61,20 @@ function confirm (text, succ, cancel) {
   }))
 }
 
+function tip(text) {
+  viola.requireAPI('bridge').invoke({
+    ns: 'ui',
+    method: 'showTips',
+    params: {
+      text,
+      iconMode: 1
+    }
+  })
+}
+
 module.exports = {
   query: query(),
   confirm,
-  alert
+  alert,
+  tip
 }
