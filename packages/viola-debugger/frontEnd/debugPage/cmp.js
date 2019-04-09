@@ -1,7 +1,7 @@
 export default {
   text: ['animate'],
   div: ['animate'],
-  list: ['scrollTo', 'loadMoreFinsish'],
+  list: ['scrollTo', 'loadMoreFinish'],
   refresh: ['refreshFinish', 'refresh'],
   qrefresh: ['refresh', 'refreshFinish']
 }

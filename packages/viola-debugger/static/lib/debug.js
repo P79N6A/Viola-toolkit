@@ -7158,7 +7158,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ({
   text: ['animate'],
   div: ['animate'],
-  list: ['scrollTo', 'loadMoreFinsish'],
+  list: ['scrollTo', 'loadMoreFinish'],
   refresh: ['refreshFinish', 'refresh'],
   qrefresh: ['refresh', 'refreshFinish']
 });
