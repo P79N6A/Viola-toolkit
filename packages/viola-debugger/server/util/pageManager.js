@@ -1,4 +1,4 @@
-const fs = require('fs')
+const log = require('./log')
 
 let __pageid__ = 1
 
@@ -31,13 +31,16 @@ function getPathById (pageId) {
 function watchFileById(pageId, listener) {
   let timer = null, filePath
   if (filePath = getPathById(pageId)) {
-    fs.watch(filePath, (eventType, filename) => {
+    const fs = require('./config').debugger.fs
+    fs.watch && fs.watch(filePath, (eventType, filename) => {
       if (timer) {
         return
       }
       timer = setTimeout(() => {
         timer = null
       }, 5000)
+
+      log.info('file Change')
       listener(eventType, filename)
     })
   }

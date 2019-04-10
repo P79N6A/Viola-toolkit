@@ -1,6 +1,6 @@
-const {
-  headlessConfig
-} = require('../util/config')
+// const {
+//   headlessConfig
+// } = require('../util/config')
 
 const {
   getDevToolUrl,
@@ -12,7 +12,9 @@ const WebSocket = require('ws')
 
 const EventEmitter = require('events');
 
-const opn = require('opn')
+const {
+  openChrome
+} = require('../util/opn')
 
 const PAGE_EVENTS = {
   CLOSE: 'close'
@@ -34,14 +36,12 @@ class DevtoolPage extends EventEmitter {
     this.targetId = targetId
     this.peerId = peerId
     this.debugPageWS = getDebugPageWSForDevTool(this.targetId)
-    // this.url = getDevToolUrl(this.debugPageWS)
-    this.url = getDevToolUrl(getDevtoolsWS(peerId))
+    this.url = getDevToolUrl(this.debugPageWS)
+    // this.url = getDevToolUrl(getDevtoolsWS(peerId))
   }
 
   open () {
-    opn(this.url, {
-      app: 'google chrome'
-    })
+    openChrome(this.url)
   }
 
   setupWS (ws) {
@@ -64,7 +64,7 @@ class DevtoolPage extends EventEmitter {
     /** @todo catch the msg and try to reuse it */
     ws.on('message', function(msg) {
       wsToHeadless.send(msg)
-      console.log('from Devtool', msg);
+      // console.log('from Devtool', msg);
     });
 
     ws.on('close', () => {

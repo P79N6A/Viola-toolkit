@@ -6,7 +6,7 @@ const EventEmitter = require('events');
 
 const log = require('../util/log')
 
-const puppeteer = require('puppeteer')
+const puppeteer = require('puppeteer-core')
 
 const config = require('../util/config').headless
 
@@ -77,20 +77,16 @@ class DebugPage extends EventEmitter {
     // @todo active browser
     if (browser) return browser
     let port = config.port || 9222
+    let executablePath = require('../util/config').debugger.chromePath
     try {
       browser = await puppeteer.launch({
         args: [`--remote-debugging-port=${port}`],
-        // headless: false,
-        // defaultViewport: {
-        //   width: 1000,
-        //   height: 800,
-        //   isMobile: true,
-        //   hasTouch: true
-        // },
-        // devtools: true
+        executablePath
       });
       return browser
     } catch (e) {
+      // log.title('Launch Browser Error').error(e)
+      console.error('Launch Browser Error')
       throw e
     }
   }
@@ -219,7 +215,7 @@ class DebugPage extends EventEmitter {
     let violaHandler
     if (this.page) {
       // await this.page.waitForNavigation()
-      log.title('this.page').error(this.page)
+      // log.title('this.page').error(this.page)
       violaHandler = await this.page.evaluateHandle('viola')
     }
     return violaHandler
@@ -231,19 +227,23 @@ class DebugPage extends EventEmitter {
     log.title('violaHandler').warn(Object.prototype.toString.call(violaHandler))
     log.title('page').warn(Object.prototype.toString.call(this.page))
     if (violaHandler && !this._isReloading) {
-      await this.page.evaluate(async (viola, fnc, args) => {
-        if (Array.isArray(fnc)) {
-          let evalFncName = fnc.pop()
-          let evalFncHost = (fnc.reduce((viola, fncName) => {
-            return viola[fncName]
-          }, viola))
-          evalFncHost[evalFncName](...args)
-        } else {
-          viola[fnc](...args)
-        }
-      }, violaHandler, fnc, args);
+      try {
+        await this.page.evaluate(async (viola, fnc, args) => {
+          if (Array.isArray(fnc)) {
+            let evalFncName = fnc.pop()
+            let evalFncHost = (fnc.reduce((viola, fncName) => {
+              return viola[fncName]
+            }, viola))
+            evalFncHost[evalFncName](...args)
+          } else {
+            viola[fnc](...args)
+          }
+        }, violaHandler, fnc, args)
+      } catch (e) {
+        log.title('_evalViolaApi ERROR').error(e)
+      }
     } else {
-      log.title('violaHandler').warn(typeof violaHandler)
+      log.title('_evalViolaApi Pending').warn(fnc, args)
       this._pendingTaskList.push({
         fnc,
         args
@@ -278,6 +278,7 @@ class DebugPage extends EventEmitter {
         this._needEmitReload = true
       }
       this._isReloading = false
+      this.setStatus(PAGE_STATUS.CONNECT)
     })
     
     this.page.on(NATIVE_PAGE_EVENTS.CLOSE, e => {
@@ -316,6 +317,7 @@ class DebugPage extends EventEmitter {
   }
 
   setStatus (status) {
+    log.title('DebugPage status change').info(status)
     this.status = status
   }
 

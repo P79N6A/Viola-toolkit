@@ -2,4 +2,4 @@ import './globalVar'
 
 import './setCTX'
 
-import './getResource'
+// import './getResource'

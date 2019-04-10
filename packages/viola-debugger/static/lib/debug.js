@@ -107,10 +107,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _globalVar__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(35);
 /* harmony import */ var _globalVar__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_globalVar__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _setCTX__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(36);
-/* harmony import */ var _getResource__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(44);
 
-
-
+ // import './getResource'
 
 /***/ }),
 
@@ -171,8 +169,10 @@ window.$destroy = function (id) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _tencent_viola_framework__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(37);
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(32);
-/* harmony import */ var _module__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(42);
-/* harmony import */ var _cmp__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(43);
+/* harmony import */ var _getResource__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(42);
+/* harmony import */ var _module__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(43);
+/* harmony import */ var _cmp__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(44);
+
 
 
 
@@ -180,10 +180,11 @@ __webpack_require__.r(__webpack_exports__);
 var init = _tencent_viola_framework__WEBPACK_IMPORTED_MODULE_0__["default"].init,
     createInstanceCtx = _tencent_viola_framework__WEBPACK_IMPORTED_MODULE_0__["default"].createInstanceCtx,
     getFramework = _tencent_viola_framework__WEBPACK_IMPORTED_MODULE_0__["default"].getFramework,
-    createInstance = _tencent_viola_framework__WEBPACK_IMPORTED_MODULE_0__["default"].createInstance;
+    createInstance = _tencent_viola_framework__WEBPACK_IMPORTED_MODULE_0__["default"].createInstance,
+    runCodeInCtx = _tencent_viola_framework__WEBPACK_IMPORTED_MODULE_0__["default"].runCodeInCtx;
 init();
-registerModules(_module__WEBPACK_IMPORTED_MODULE_2__["default"]);
-registerComponent(_cmp__WEBPACK_IMPORTED_MODULE_3__["default"]);
+registerModules(_module__WEBPACK_IMPORTED_MODULE_3__["default"]);
+registerComponent(_cmp__WEBPACK_IMPORTED_MODULE_4__["default"]);
 
 if (typeof ViolaEnv === 'undefined') {
   console.warn('NO ViolaEnv');
@@ -219,17 +220,39 @@ if (typeof __CREATE_INSTANCE__ === 'undefined') {
 
 
 var CTX = createInstanceCtx(__CREATE_INSTANCE__.instanceId, __CREATE_INSTANCE__.pageData);
-var fwName = _util__WEBPACK_IMPORTED_MODULE_1__["query"].get('fw') || 'vue';
-var fw = getFramework("/** @fw ".concat(fwName, " */")); // running Code
+runCode(); // const fwName = query.get('fw') || 'vue'
+// const fw = getFramework(`/** @fw ${fwName} */`)
+// // running Code
+// fw.intoCTX && fw.intoCTX(CTX)
+// Object.keys(CTX).forEach(key => {
+//   if (key !== 'document') {
+//     window[key] = CTX[key]
+//   } else {
+//     window['_doc'] = window['_document'] = CTX[key]
+//   }
+// })
 
-fw.intoCTX && fw.intoCTX(CTX);
-Object.keys(CTX).forEach(function (key) {
-  if (key !== 'document') {
-    window[key] = CTX[key];
-  } else {
-    window['_doc'] = window['_document'] = CTX[key];
+function runCode() {
+  if (_util__WEBPACK_IMPORTED_MODULE_1__["query"].has('pageId')) {
+    var url = "/getBundle/".concat(_util__WEBPACK_IMPORTED_MODULE_1__["query"].get('pageId'));
+    Object(_getResource__WEBPACK_IMPORTED_MODULE_2__["fetchScript"])(url).then(function (scriptText) {
+      var fw = getFramework(scriptText);
+      console.log(fw); // running Code
+
+      fw.intoCTX && fw.intoCTX(CTX);
+      Object.keys(CTX).forEach(function (key) {
+        if (key !== 'document') {
+          window[key] = CTX[key];
+        } else {
+          window['_doc'] = window['_document'] = CTX[key];
+        }
+      });
+      Object(_getResource__WEBPACK_IMPORTED_MODULE_2__["insertScriptText"])(scriptText);
+    }).catch(function (e) {
+      console.error(e);
+    });
   }
-});
+}
 
 /***/ }),
 
@@ -7139,6 +7162,40 @@ process.umask = function() { return 0; };
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "insertScriptUrl", function() { return insertScriptUrl; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "insertScriptText", function() { return insertScriptText; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "fetchScript", function() { return fetchScript; });
+// import {
+//   query
+// } from '../util'
+// if (query.has('pageId')) {
+//   insertScript(`/getBundle/${query.get('pageId')}`)
+// }
+function insertScriptUrl(url) {
+  var script = document.createElement('script');
+  script.src = url;
+  document.body.appendChild(script);
+}
+function insertScriptText(scriptText) {
+  var script = document.createElement('script');
+  script.textContent = scriptText;
+  document.body.appendChild(script);
+}
+function fetchScript(url) {
+  return fetch(url).then(function (response) {
+    return response.text();
+  }).catch(function (e) {
+    throw new Error(e);
+  });
+}
+
+/***/ }),
+
+/***/ 43:
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ({
   http: ['request', 'requestGet', 'requestPost'],
   cache: ['setItem', 'getItem', 'remove'],
@@ -7150,7 +7207,7 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ 43:
+/***/ 44:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -7170,26 +7227,6 @@ __webpack_require__.r(__webpack_exports__);
   gif: ['play'],
   modal: ['show', 'hide']
 });
-
-/***/ }),
-
-/***/ 44:
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(32);
-
-
-if (_util__WEBPACK_IMPORTED_MODULE_0__["query"].has('pageId')) {
-  insertScript("/getBundle/".concat(_util__WEBPACK_IMPORTED_MODULE_0__["query"].get('pageId')));
-}
-
-function insertScript(url) {
-  var script = document.createElement('script');
-  script.src = url;
-  document.body.appendChild(script);
-}
 
 /***/ })
 

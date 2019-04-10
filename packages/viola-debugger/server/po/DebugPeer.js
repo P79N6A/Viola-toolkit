@@ -64,6 +64,9 @@ class DebugPeer {
     this.clearDevice()
   }
   
+  /**
+   * init debugPage, listen to events
+   */
   async initPage () {
 
     if (this.debugPage && this.debugPage.status !== DebugPage.STATUS.DISCONNECTED) return
@@ -93,18 +96,19 @@ class DebugPeer {
           task
         })
       },
-      // [EVENTS.BEFORE_OPEN]: async (done) => {
-      //   log.title('before open').info('open')
-      //   log.info('after inject')
-      // },
       [EVENTS.RELOAD]: () => {
-        log.info('reload to reset historyList')
+        
         this._reload = true
+        log.title('reload device length').info(this.deviceList.length)
+        // notify device to reload
         this.notifyDevice({
           type: NATIVE_MSG_TYPE.RELOAD,
           task: {}
         }, false)
+        // clear device
         this.deviceList.length = 0
+
+        log.info('reload to reset historyList')
         this.resetHistory(false)
       },
       [EVENTS.PAGE_ERROR]: (e) => {
@@ -161,10 +165,10 @@ class DebugPeer {
         // this.debugPage.connect()
       } else if (this.deviceList.length === 1) {
         if (this._reload) {
-          log.info('reload')
+          log.title('reload').info()
           this.replayHistory(NATIVE_MSG_TYPE.CALL_NATIVE, deviceWS)
         } else {
-          log.info('entry again')
+          log.title('entry again').info()
           // entry again
           this.refreshPage()
         }
@@ -197,7 +201,7 @@ class DebugPeer {
       if (!list.length) {
         // this.debugPage.setStatus('idle')
         this.debugPage.idle()
-        this._reload = 0
+        this._reload = false
       }
     }
   }
@@ -223,17 +227,20 @@ class DebugPeer {
           }
           this.addDevice(ws)
           break;
+
         // callJS
         case NATIVE_MSG_TYPE.CALL_JS:
           log.title('callJS').info(data)
           this.debugPage.evaluateCallJS(history = data.task)
           break
+
         // updateInstance
         case NATIVE_MSG_TYPE.UPDATE_INSTANCE:
           log.title(type).info(data)
           log.title('this.debugPage.status').info(this.debugPage.status)
           this.debugPage.updateInstance(history = data.args)
           break
+
         // destroyInstance
         case NATIVE_MSG_TYPE.DESTROY_INSTANCE:
           log.title(type).info()
@@ -249,21 +256,14 @@ class DebugPeer {
     })
   }
 
-  notifyPage ({
-    type,
-    task
-  }) {
+  notifyPage ({type, task}) {
     // console.log('notifyPage')
     // this.debugPage.evaluateCallJS(this.globalVar.viola.instanceId, task)
     this.debugPage.evaluateCallJS(task)
     this.pushHistory(NATIVE_MSG_TYPE.CALL_JS, task)
   }
 
-  notifyDevice ({
-    type,
-    task,
-    ws
-  }, isRecord = true) {
+  notifyDevice ({type, task, ws }, isRecord = true) {
     let msg = MSG.genMsg(type, task)
     if (ws) {
       ws.send(msg)

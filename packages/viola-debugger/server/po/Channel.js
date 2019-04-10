@@ -2,7 +2,9 @@ const {
   generateId
 } = require('../util/id')
 
-const opn = require('opn')
+const {
+  openChrome
+} = require('../util/opn')
 
 const {
   getEnvBaseInfo
@@ -121,45 +123,10 @@ class Channel {
     return !!this.ws
   }
 
-  addDebugDevice (ws, {
-    pageId,
-    ViolaEnv,
-    viola
-  }) {
-    let peer = this.peers[pageId]
-    if (peer) {
-      // @todo replay history task
-      peer.addDevice(ws)
-    }
-    return peer
-  }
-
-  callJS ({
-    ws,
-    pageId,
-    task
-  }) {
-    let peer = this.peers[pageId]
-    if (peer) {
-      peer.notifyPage({task})
-    } else {
-      log.title('No peer found in CallJS').error({
-        entryPage: this.id,
-        pageId
-      })
-    }
-  }
-
-  genDebugJSPath (env) {
-
-  }
-
   open () {
     let url = getEntryPageUrl(this.id)
     log.title('open').info(url)
-    opn(url, {
-      app: 'google chrome'
-    })
+    openChrome(url)
   }
 }
 

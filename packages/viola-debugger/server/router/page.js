@@ -1,5 +1,7 @@
-var express = require('express')
-var router = express.Router()
+const express = require('express')
+const router = express.Router()
+
+// const fs = require('../util/config').debugger.fs
 
 const {
   getPathById
@@ -8,9 +10,13 @@ const {
 const DebugPeer = require('../po/DebugPeer')
 
 router.get('/getBundle/:pageId', (req, res) => {
+  let fs = require('../util/config').debugger.fs
   console.log(req.params.pageId)
   console.log(getPathById(req.params.pageId))
-  res.sendFile(getPathById(req.params.pageId))
+  console.log('fs', fs)
+  const content = fs.readFileSync(getPathById(req.params.pageId), 'utf-8')
+  res.send(content)
+  // res.sendFile(getPathById(req.params.pageId))
   // res.send('xi xi ' + req.params.pageId)
 })
 

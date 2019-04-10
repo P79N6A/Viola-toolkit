@@ -26,6 +26,6 @@ module.exports = function inspect(program) {
       }
       config.port = cmd.port
       config.autoOpen = parseToBoolean(cmd.open)
-      require('../../index').startDebug(config)
+      require('../../index').startServer(config)
     })
 }

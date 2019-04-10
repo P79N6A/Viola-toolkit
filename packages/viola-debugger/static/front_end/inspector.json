@@ -2,6 +2,6 @@
   "modules" : [
     { "name": "screencast", "type": "autostart" }
   ],
-  "extends": "devtools_app",
+  "extends": "devtools_app_viola",
   "has_html": true
 }

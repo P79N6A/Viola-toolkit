@@ -2,10 +2,18 @@ const express = require('express')
 const router = express.Router()
 
 const log = require('../util/log')
+const {
+  multipleChannel
+} = require('../util/config').debugger
 const Channel = require('../po/Channel')
 
 router.ws('/:channelId', function(ws, req) {
-  const channel = Channel.getChannelById(req.params.channelId)
+  let channel
+  if (!multipleChannel) {
+    channel = req.app.defaultChannel
+  } else {
+    channel = Channel.getChannelById(req.params.channelId)
+  }
   if (channel && !channel.hasWS()) {
     channel.setupWS(ws)
   } else {
@@ -20,7 +28,13 @@ router.ws('/:channelId', function(ws, req) {
  * @todo generate Channel if there is no channelId
  */
 router.ws('/', function(ws) {
-  new Channel({ ws })
+  if (!multipleChannel) {
+    channel = req.app.defaultChannel
+    channel.setupWS(ws)
+  } else {
+    // channel = Channel.getChannelById(req.params.channelId)
+    new Channel({ ws })
+  }
 })
 
 module.exports = router

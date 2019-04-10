@@ -22,12 +22,17 @@ class Config {
   }
 }
 
+const defaultFS = require('fs')
+
 const debuggerConfig = new Config({
+  fs: defaultFS,
   port: 8086,
   targets: null,
-  targetType: 'file',
-  devtools: true,
-  autoOpen: true,
+  targetType: 'file', // bundle 链接类型
+  devtools: true,   // 显示 devtools
+  autoOpen: true,   // 自动打开页面
+  chromePath: '',   // 预留，如果使用 puppeteer-core
+  multipleChannel: true,
   FE: {
     debugPage: 'debug.html',
     entryPage: 'entry.html',

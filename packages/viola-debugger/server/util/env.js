@@ -4,12 +4,25 @@ const {
 
 const config = require('./config').debugger
 
-const ip = require('ip');
+const ip = require('ip')
+
+const os = require('os')
+
+const platform = os.platform()
+
+const isMacOS = platform === 'darwin'
+
+const isWin = platform === 'win32'
+
+
+function getIpAddr () {
+  return ip.address()
+}
 
 function getEnvBaseInfo () {
   const _map = getPageMap()
 
-  const _ip = ip.address(),
+  const _ip = getIpAddr(),
       addr = _ip + ':' + config.port
 
   let info = {
@@ -23,5 +36,9 @@ function getEnvBaseInfo () {
 }
 
 module.exports = {
-  getEnvBaseInfo
+  getEnvBaseInfo,
+  getIpAddr,
+  platform,
+  isMacOS,
+  isWin
 }

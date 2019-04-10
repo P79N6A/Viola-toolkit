@@ -1,7 +1,13 @@
 import defaultFnc from '@tencent/viola-framework'
+
 import {
   query
 } from '../util'
+
+import {
+  fetchScript,
+  insertScriptText
+} from './getResource'
 
 import modules from './module'
 import cmp from './cmp'
@@ -10,7 +16,8 @@ let {
   init,
   createInstanceCtx,
   getFramework,
-  createInstance
+  createInstance,
+  runCodeInCtx
 } = defaultFnc
 
 init()
@@ -53,16 +60,44 @@ if (typeof __CREATE_INSTANCE__ === 'undefined') {
 // viola instance
 const CTX = createInstanceCtx(__CREATE_INSTANCE__.instanceId, __CREATE_INSTANCE__.pageData)
 
-const fwName = query.get('fw') || 'vue'
-const fw = getFramework(`/** @fw ${fwName} */`)
+runCode()
 
-// running Code
-fw.intoCTX && fw.intoCTX(CTX)
+// const fwName = query.get('fw') || 'vue'
+// const fw = getFramework(`/** @fw ${fwName} */`)
 
-Object.keys(CTX).forEach(key => {
-  if (key !== 'document') {
-    window[key] = CTX[key]
-  } else {
-    window['_doc'] = window['_document'] = CTX[key]
+// // running Code
+// fw.intoCTX && fw.intoCTX(CTX)
+
+// Object.keys(CTX).forEach(key => {
+//   if (key !== 'document') {
+//     window[key] = CTX[key]
+//   } else {
+//     window['_doc'] = window['_document'] = CTX[key]
+//   }
+// })
+
+function runCode () {
+  if (query.has('pageId')) {
+    let url = `/getBundle/${query.get('pageId')}`
+    fetchScript(url)
+      .then(scriptText => {
+        const fw = getFramework(scriptText)
+        console.log(fw)
+        // running Code
+        fw.intoCTX && fw.intoCTX(CTX)
+
+        Object.keys(CTX).forEach(key => {
+          if (key !== 'document') {
+            window[key] = CTX[key]
+          } else {
+            window['_doc'] = window['_document'] = CTX[key]
+          }
+        })
+
+        insertScriptText(scriptText)
+      })
+      .catch(e => {
+        console.error(e)
+      })
   }
-})
+}
