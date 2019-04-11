@@ -1,6 +1,6 @@
 {
-  "name": "viola-debugger",
-  "version": "0.1.0-beta",
+  "name": "@tencent/viola-debugger",
+  "version": "0.1.0",
   "description": "node-ws-server for viola debug",
   "main": "index.js",
   "files": [
@@ -41,7 +41,6 @@
     "express-ws": "^4.0.0",
     "ip": "^1.1.5",
     "opn": "^6.0.0",
-    "puppeteer": "^1.14.0",
     "puppeteer-core": "^1.14.0",
     "qrcode": "^1.3.3",
     "webpack": "^4.29.0",
