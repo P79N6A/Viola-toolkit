@@ -1,0 +1,39 @@
+{
+  "name": "@tencent/viola-webpack-devtool",
+  "version": "0.1.0",
+  "description": "Viola Debugger For webpack",
+  "keywords": [
+    "viola"
+  ],
+  "author": "RonkTsang <ronktsang@gmail.com>",
+  "homepage": "https://github.com/RonkTsang/Viola-toolkit#readme",
+  "license": "ISC",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "bin": {
+    "viola-webpack-devtool": "bin/debug"
+  },
+  "files": [
+    "lib",
+    "bin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RonkTsang/Viola-toolkit.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/RonkTsang/Viola-toolkit/issues"
+  },
+  "dependencies": {
+    "@tencent/viola-debugger": "^0.1.0",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.3.0",
+    "yargs": "^13.2.2"
+  }
+}

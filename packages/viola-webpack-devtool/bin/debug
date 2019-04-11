@@ -1,0 +1,20 @@
+#! /usr/bin/env node
+
+const yargs = require('yargs')
+
+const argv = yargs.argv;
+
+// webpack-cli@3.3 path : 'webpack-cli/bin/utils/convert-argv'
+let convertArgvPath;
+try {
+  require.resolve('webpack-cli/bin/utils/convert-argv');
+  convertArgvPath = 'webpack-cli/bin/utils/convert-argv';
+} catch (e) {
+  convertArgvPath = 'webpack-cli/bin/convert-argv';
+}
+
+const config = require(convertArgvPath)(yargs, argv);
+
+console.log(config)
+
+require('../lib/index')(config)
