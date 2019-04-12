@@ -31,7 +31,7 @@ const debuggerConfig = new Config({
   targetType: 'file', // bundle 链接类型
   devtools: true,   // 显示 devtools
   autoOpen: true,   // 自动打开页面
-  chromePath: '',   // 预留，如果使用 puppeteer-core
+  chromePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',   // 预留，如果使用 puppeteer-core
   multipleChannel: true,
   FE: {
     debugPage: 'debug.html',
