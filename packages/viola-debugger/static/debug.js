@@ -395,7 +395,9 @@ module.exports = {
   DESTROY_INSTANCE: 'destroyInstance',
   RELOAD: 'reload',
   CLOSE: 'close',
-  MODULE: {},
+  MODULE: {
+    DOM: 'dom'
+  },
   METHOD: {
     CREATE_BODY: 'createBody',
     ADD_ELEMENT: 'addElement',

@@ -51,6 +51,14 @@ class MSG {
       throw new TypeError('MSG parse error: expect MSG { type, data }')
     }
   }
+
+  static callNative (module, method, args) {
+    return [{
+      module,
+      method,
+      args
+    }]
+  }
 }
 
 module.exports = MSG

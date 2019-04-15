@@ -9,6 +9,7 @@ const {
 } = require('../util/IO')
 
 const NATIVE_MSG_TYPE = require('../const/native')
+const CALL_MSG = 'call_msg'
 
 const DebugPage = require('./DebugPage')
 const DevtoolPage = require('./DevtoolPage')
@@ -95,9 +96,9 @@ class DebugPeer {
           type: NATIVE_MSG_TYPE.CALL_NATIVE,
           task
         })
+        this.pushHistory(CALL_MSG, task)
       },
       [EVENTS.RELOAD]: () => {
-        
         this._reload = true
         log.title('reload device length').info(this.deviceList.length)
         // notify device to reload
@@ -175,17 +176,16 @@ class DebugPeer {
       } else if (this.hasHistory(NATIVE_MSG_TYPE.CALL_NATIVE)) {
         /** @todo use viola.document.body.toJSON to replace historyArray */
         // this.replayHistory(NATIVE_MSG_TYPE.CALL_NATIVE, deviceWS)
-        log.title('replay HISTORY DEVIVE').info(this.deviceList.length)
         /** @todo Don't make a task directly */
         log.title('replay HISTORY').info()
         let bodyJSON = await this.debugPage.getViolaBodyJSON()
         this.notifyDevice({
           type: NATIVE_MSG_TYPE.CALL_NATIVE,
-          task: [{
-            module: 'dom',
-            method: 'createBody',
-            args: bodyJSON
-          }],
+          task: MSG.callNative(
+            NATIVE_MSG_TYPE.MODULE.DOM,
+            NATIVE_MSG_TYPE.METHOD.CREATE_BODY,
+            bodyJSON
+          ),
           ws: deviceWS
         }, false)
       }
@@ -232,6 +232,8 @@ class DebugPeer {
         case NATIVE_MSG_TYPE.CALL_JS:
           log.title('callJS').info(data)
           this.debugPage.evaluateCallJS(history = data.task)
+          this.pushHistory(NATIVE_MSG_TYPE.CALL_JS, task)
+          this.pushHistory(CALL_MSG, task)
           break
 
         // updateInstance
@@ -256,11 +258,13 @@ class DebugPeer {
     })
   }
 
+  /** @deprecated */
   notifyPage ({type, task}) {
     // console.log('notifyPage')
     // this.debugPage.evaluateCallJS(this.globalVar.viola.instanceId, task)
     this.debugPage.evaluateCallJS(task)
     this.pushHistory(NATIVE_MSG_TYPE.CALL_JS, task)
+    this.pushHistory(CALL_MSG, task)
   }
 
   notifyDevice ({type, task, ws }, isRecord = true) {
@@ -322,9 +326,23 @@ class DebugPeer {
     this.devtoolPage.open()
     this._hasOpenDevtool = true
     this.devtoolPage.on(DevtoolPage.EVENTS.CLOSE, () => {
-      this._hasOpenDevtool = false
+      this.reset()
+      // this._hasOpenDevtool = false
+      // this.clearDevice()
       // this.debugPage
     })
+  }
+
+  closeDevtool () {
+    this.devtoolPage && this.devtoolPage.close()
+  }
+
+  reset () {
+    log.title('devtool close').info()
+    this._hasOpenDevtool = false
+    // this.clearDevice()
+    this.debugPage.destroy()
+    this.resetHistory()
   }
 
   getDevtoolPage () {

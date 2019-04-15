@@ -95,6 +95,12 @@ class DebugPage extends EventEmitter {
     return browser
   }
 
+  destroy () {
+    this.close()
+    this._peer = null
+    this._pendingTaskList.length = 0
+  }
+
   async open () {
     if (!browser) {
       await DebugPage.launch()
@@ -115,11 +121,11 @@ class DebugPage extends EventEmitter {
     })
 
     log.info('after emit')
-
     
+    // emulate device
     await this.emulate()
     
-    
+    // route to debug page
     await this.page.goto(url)
     
     this._setupListener()
@@ -129,6 +135,8 @@ class DebugPage extends EventEmitter {
     log.title('open').info(this._pageId)
 
     this.target = this.page.target()
+
+    this.setStatus(PAGE_STATUS.CONNECT)
     // this.debugWSUrl = getDebugPageWS()
 
     return {
@@ -214,18 +222,21 @@ class DebugPage extends EventEmitter {
   async _getViolaHandler () {
     let violaHandler
     if (this.page) {
-      // await this.page.waitForNavigation()
-      // log.title('this.page').error(this.page)
-      violaHandler = await this.page.evaluateHandle('viola')
+      try {
+        violaHandler = await this.page.evaluateHandle('viola')
+      } catch (e) {
+        log.title('_getViolaHandler ERROR').error(e)
+        violaHandler = null
+      }
     }
     return violaHandler
   }
 
   async _evalViolaApi (fnc, ...args) {
     log.title('_evalViolaApi').warn(fnc, args)
+    // log.title('page').warn(Object.prototype.toString.call(this.page))
     let violaHandler = await this._getViolaHandler()
-    log.title('violaHandler').warn(Object.prototype.toString.call(violaHandler))
-    log.title('page').warn(Object.prototype.toString.call(this.page))
+    // log.title('violaHandler').warn(Object.prototype.toString.call(violaHandler))
     if (violaHandler && !this._isReloading) {
       try {
         await this.page.evaluate(async (viola, fnc, args) => {
@@ -313,6 +324,7 @@ class DebugPage extends EventEmitter {
   }
 
   async close () {
+    this.setStatus(PAGE_STATUS.DISCONNECTED)
     await this.page.close()
   }
 

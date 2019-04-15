@@ -35,16 +35,22 @@ class DevtoolPage extends EventEmitter {
     // this.ws = ws
     this.targetId = targetId
     this.peerId = peerId
+    this.ws = null
     this.debugPageWS = getDebugPageWSForDevTool(this.targetId)
-    this.url = getDevToolUrl(this.debugPageWS)
-    // this.url = getDevToolUrl(getDevtoolsWS(peerId))
+    // this.url = getDevToolUrl(this.debugPageWS)  // connect to TagertPage directlly
+    this.url = getDevToolUrl(getDevtoolsWS(peerId)) // connect to NodeServer
   }
 
   open () {
     openChrome(this.url)
   }
 
+  close () {
+    this.ws.close()
+  }
+
   setupWS (ws) {
+    this.ws = ws
     // ws remote-url for debugPage
     const wsToHeadless = new WebSocket(`ws://${this.debugPageWS}`);
     let isConnecting = false
@@ -71,6 +77,7 @@ class DevtoolPage extends EventEmitter {
       isConnecting = false
       wsToHeadless.close()
       this.emit(PAGE_EVENTS.CLOSE)
+      this.ws = null
     })
   }
 }
