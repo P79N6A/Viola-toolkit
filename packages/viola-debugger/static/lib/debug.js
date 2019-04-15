@@ -179,15 +179,12 @@ __webpack_require__.r(__webpack_exports__);
 
 var init = _tencent_viola_framework__WEBPACK_IMPORTED_MODULE_0__["default"].init,
     createInstanceCtx = _tencent_viola_framework__WEBPACK_IMPORTED_MODULE_0__["default"].createInstanceCtx,
-    getFramework = _tencent_viola_framework__WEBPACK_IMPORTED_MODULE_0__["default"].getFramework,
-    createInstance = _tencent_viola_framework__WEBPACK_IMPORTED_MODULE_0__["default"].createInstance,
-    runCodeInCtx = _tencent_viola_framework__WEBPACK_IMPORTED_MODULE_0__["default"].runCodeInCtx;
+    getFramework = _tencent_viola_framework__WEBPACK_IMPORTED_MODULE_0__["default"].getFramework;
 init();
 registerModules(_module__WEBPACK_IMPORTED_MODULE_3__["default"]);
 registerComponent(_cmp__WEBPACK_IMPORTED_MODULE_4__["default"]);
 
 if (typeof ViolaEnv === 'undefined') {
-  console.warn('NO ViolaEnv');
   window.ViolaEnv = {
     platform: 'iOS',
     osVersion: '10.0.1',
@@ -201,43 +198,28 @@ if (typeof ViolaEnv === 'undefined') {
     iphoneX: 1,
     statusBarHeight: '36'
   };
-} else {
-  console.info('ViolaEnv: ', ViolaEnv);
 } // instance data
 
 
 if (typeof __CREATE_INSTANCE__ === 'undefined') {
-  console.warn('NO __CREATE_INSTANCE__ DATA');
+  // console.warn('NO __CREATE_INSTANCE__ DATA')
   window.__CREATE_INSTANCE__ = {
     instanceId: parseInt(Math.random() * 100),
     pageData: {
       url: ''
     }
   };
-} else {
-  console.info('__CREATE_INSTANCE__: ', __CREATE_INSTANCE__);
 } // viola instance
 
 
 var CTX = createInstanceCtx(__CREATE_INSTANCE__.instanceId, __CREATE_INSTANCE__.pageData);
-runCode(); // const fwName = query.get('fw') || 'vue'
-// const fw = getFramework(`/** @fw ${fwName} */`)
-// // running Code
-// fw.intoCTX && fw.intoCTX(CTX)
-// Object.keys(CTX).forEach(key => {
-//   if (key !== 'document') {
-//     window[key] = CTX[key]
-//   } else {
-//     window['_doc'] = window['_document'] = CTX[key]
-//   }
-// })
+runCode();
 
 function runCode() {
   if (_util__WEBPACK_IMPORTED_MODULE_1__["query"].has('pageId')) {
     var url = "/getBundle/".concat(_util__WEBPACK_IMPORTED_MODULE_1__["query"].get('pageId'));
     Object(_getResource__WEBPACK_IMPORTED_MODULE_2__["fetchScript"])(url).then(function (scriptText) {
-      var fw = getFramework(scriptText);
-      console.log(fw); // running Code
+      var fw = getFramework(scriptText); // running Code
 
       fw.intoCTX && fw.intoCTX(CTX);
       Object.keys(CTX).forEach(function (key) {
@@ -7215,6 +7197,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony default export */ __webpack_exports__["default"] = ({
   text: ['animate'],
   div: ['animate'],
+  image: ['animate'],
   list: ['scrollTo', 'loadMoreFinish', 'scrollToTop', 'getPosition'],
   scroller: ['scrollTo', 'loadMoreFinish', 'scrollToTop', 'getPosition'],
   refresh: ['refreshFinish', 'refresh'],
@@ -7225,7 +7208,8 @@ __webpack_require__.r(__webpack_exports__);
   cell: ['animate'],
   input: ['focus', 'blur', 'setText', 'getText'],
   gif: ['play'],
-  modal: ['show', 'hide']
+  modal: ['show', 'hide'],
+  'indicate-loading': ['animate']
 });
 
 /***/ })

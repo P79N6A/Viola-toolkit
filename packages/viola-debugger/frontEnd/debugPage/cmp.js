@@ -1,6 +1,7 @@
 export default {
   text: ['animate'],
   div: ['animate'],
+  image: ['animate'],
   list: ['scrollTo', 'loadMoreFinish', 'scrollToTop', 'getPosition'],
   scroller: ['scrollTo', 'loadMoreFinish', 'scrollToTop', 'getPosition'],
   refresh: ['refreshFinish', 'refresh'],
@@ -11,5 +12,6 @@ export default {
   cell: ['animate'],
   input: ['focus', 'blur', 'setText', 'getText'],
   gif: ['play'],
-  modal: ['show', 'hide']
+  modal: ['show', 'hide'],
+  'indicate-loading': ['animate'],
 }

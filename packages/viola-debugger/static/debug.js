@@ -159,7 +159,11 @@ websocket.onopen(genFncId(function (e) {
 })); // error
 
 websocket.onerror(genFncId(function (e) {
-  throw new Error(e);
+  if (typeof e === 'string') {
+    throw new Error('WEBSOCKECT ERROR: ' + e);
+  } else {
+    throw new Error(JSON.stringify(e));
+  }
 })); // close
 
 websocket.onclose(genFncId(function (e) {
@@ -189,6 +193,7 @@ websocket.onmessage(genFncId(function (e) {
 }));
 
 function onWSClose() {
+  websocket.isOpen = 0;
   if (isReloading) return;
   confirm('链接已停止', function () {
     viola.requireAPI('bridge').invoke({
@@ -250,6 +255,10 @@ viola.on('destroy', function destroy(args) {
   websocket.sendTask(MSG_TYPE.DESTROY_INSTANCE, {
     args: args
   });
+
+  if (websocket.isOpen) {
+    websocket.close();
+  }
 });
 
 /***/ }),
