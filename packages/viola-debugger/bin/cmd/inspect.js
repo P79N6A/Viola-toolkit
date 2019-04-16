@@ -5,9 +5,10 @@ const {
 module.exports = function inspect(program) {
   program
     .command('inspect <jsBundle> [otherJsBundle...]')
-    .option('-P, --port <port>', 'custom dev server port', 8086)
+    .option('-p, --port <port>', 'custom dev server port', 8086)
     .option('-D, --devmode', 'debugger development mode')
-    .option('-O, --open <open>', 'auto open browser', true)
+    .option('-o, --open <open>', 'auto open browser', true)
+    .option('-w, --watch', 'watch mode', false)
     .action(function (jsBundle, otherJsBundle, cmd) {
       const dirPath = process.cwd()
       const path = require('path')
@@ -25,6 +26,7 @@ module.exports = function inspect(program) {
         process.env.DEVELOPMENT = true
       }
       config.port = cmd.port
+      config.watch = parseToBoolean(cmd.watch)
       config.autoOpen = parseToBoolean(cmd.open)
       require('../../index').startServer(config)
     })

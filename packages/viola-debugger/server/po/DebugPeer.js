@@ -8,6 +8,8 @@ const {
   saveArrayData
 } = require('../util/IO')
 
+const debuggerConfig = require('../util/config').debugger
+
 const NATIVE_MSG_TYPE = require('../const/native')
 const CALL_MSG = 'call_msg'
 
@@ -87,7 +89,8 @@ class DebugPeer {
         'height': parseInt(ViolaEnv.deviceHeight),
         'deviceScaleFactor': parseFloat(ViolaEnv.dpToPxRatio),
         'userAgent': `${ViolaEnv.appName} ${ViolaEnv.appVersion}`
-      }
+      },
+      watch: debuggerConfig.watch
     })
 
     const EVENT_PROCESSER = {
@@ -232,8 +235,7 @@ class DebugPeer {
         case NATIVE_MSG_TYPE.CALL_JS:
           log.title('callJS').info(data)
           this.debugPage.evaluateCallJS(history = data.task)
-          this.pushHistory(NATIVE_MSG_TYPE.CALL_JS, task)
-          this.pushHistory(CALL_MSG, task)
+          this.pushHistory(CALL_MSG, history)
           break
 
         // updateInstance

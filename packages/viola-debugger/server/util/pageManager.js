@@ -28,20 +28,27 @@ function getPathById (pageId) {
   return pageMap[pageId]
 }
 
-function watchFileById(pageId, listener) {
+function watchFileById(pageId, callback) {
   let timer = null, filePath
   if (filePath = getPathById(pageId)) {
     const fs = require('./config').debugger.fs
-    fs.watch && fs.watch(filePath, (eventType, filename) => {
-      if (timer) {
-        return
+    // fs.watch will
+    // fs.watch && fs.watch(filePath, (eventType, filename) => {
+    //   if (timer) {
+    //     return
+    //   } else {
+    //     listener(eventType, filename)
+    //     // update next time AFTER 3000ms
+    //     // @todo 3000ms can be set
+    //     timer = setTimeout(() => {
+    //       timer = null
+    //     }, 3000)
+    //   }
+    // })
+    fs.watchFile && fs.watchFile(filePath, (curr, prev) => {
+      if (curr.mtime !== prev.mtime) {
+        callback(filePath)
       }
-      timer = setTimeout(() => {
-        timer = null
-      }, 5000)
-
-      log.info('file Change')
-      listener(eventType, filename)
     })
   }
 }

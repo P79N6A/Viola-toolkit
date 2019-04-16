@@ -33,6 +33,7 @@ const debuggerConfig = new Config({
   autoOpen: true,   // 自动打开页面
   chromePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',   // 预留，如果使用 puppeteer-core
   multipleChannel: true,
+  watch: true,
   FE: {
     debugPage: 'debug.html',
     entryPage: 'entry.html',
