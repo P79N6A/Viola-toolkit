@@ -13,7 +13,7 @@ const DebugPeer = require('../po/DebugPeer')
  * @todo generate Channel if there is no channelId
  */
 router.ws('/:peerId', function(ws, req) {
-  console.log('native: ', req.params.peerId)
+  log.title('native: ', req.params.peerId).info()
   let peerId = req.params.peerId
   const peer = DebugPeer.getPeerById(peerId)
   peer && peer.setupWS(ws)

@@ -101,7 +101,7 @@ websocket.onmessage(genFncId(function (e){
 function onWSClose () {
   websocket.isOpen = 0
   if (isReloading) return
-  confirm('链接已停止', () => {
+  confirm('Debug已停止', () => {
     viola.requireAPI('bridge').invoke({
       ns: 'ui',
       method: 'popBack',

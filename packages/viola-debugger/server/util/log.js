@@ -6,6 +6,13 @@ const logTypeStyle = {
   warn: ['bgYellow', 'white'],
 }
 
+const levelTypes = Object.keys(logTypeStyle)
+
+const levels = 
+  process.env.DEVELOPMENT
+    ? ['info', 'warn', 'error']
+    : ['error']
+
 let LOG = function LOG (...args) {
   console.log(...args)
   return this
@@ -17,33 +24,33 @@ LOG.title = function (title) {
   return this
 }
 
-if (process.env.DEVELOPMENT) {
-  function time () {
-    console.log(`======== ${new Date()} =======`)
-  }
-  Object.keys(logTypeStyle).forEach((type) => {
-    const style = logTypeStyle[type]
-    LOG[type] = function (...msg) {
-      time()
-      let chalkStyleFnc = LOG[type]['_chalkStyle']
-      if (!chalkStyleFnc) {
-        const chalkStyle = style.reduce((fnc, s) => {
-          return fnc[s]
-        }, chalk)
-        chalkStyleFnc = LOG[type]['_chalkStyle'] = chalkStyle
-      }
-      let _title = this._title || type.toUpperCase()
-      console.log(chalkStyleFnc(` ${_title} `))
-      console.log(...msg)
-      console.log('')
-      this._title = ''
-    }
-  });
-} else {
-  function noop () {}
-  Object.keys(logTypeStyle).forEach((type) => {
-    LOG[type] = noop
-  });
+function time () {
+  console.log(`======== ${new Date()} =======`)
 }
+
+levels.forEach((type) => {
+  const style = logTypeStyle[type]
+  LOG[type] = function (...msg) {
+    time()
+    let chalkStyleFnc = LOG[type]['_chalkStyle']
+    if (!chalkStyleFnc) {
+      const chalkStyle = style.reduce((fnc, s) => {
+        return fnc[s]
+      }, chalk)
+      chalkStyleFnc = LOG[type]['_chalkStyle'] = chalkStyle
+    }
+    let _title = this._title || type.toUpperCase()
+    console.log(chalkStyleFnc(` ${_title} `))
+    console.log(...msg)
+    console.log('')
+    this._title = ''
+  }
+  levelTypes.splice(levelTypes.indexOf(type), 1)
+});
+
+function noop () {return this}
+levelTypes.forEach((type) => {
+  LOG[type] = noop
+})
 
 module.exports = LOG
