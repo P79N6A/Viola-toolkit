@@ -1,5 +1,5 @@
 // const args = require('yargs').argv
-const ViolaDebug = require('viola-debugger')
+const ViolaDebug = require('@tencent/viola-debugger')
 const path = require('path')
 const MemoryFS = require('memory-fs');
 const webpack = require('webpack');

@@ -1,6 +1,6 @@
 {
   "name": "@tencent/viola-webpack-devtool",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Viola Debugger For webpack",
   "keywords": [
     "viola"
