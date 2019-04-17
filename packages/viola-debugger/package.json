@@ -1,6 +1,6 @@
 {
   "name": "@tencent/viola-debugger",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "node-ws-server for viola debug",
   "main": "index.js",
   "files": [

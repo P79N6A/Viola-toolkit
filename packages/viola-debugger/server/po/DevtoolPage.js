@@ -16,6 +16,8 @@ const {
   openChrome
 } = require('../util/opn')
 
+const log = require('../util/log')
+
 const PAGE_EVENTS = {
   CLOSE: 'close'
 }
@@ -55,7 +57,7 @@ class DevtoolPage extends EventEmitter {
     const wsToHeadless = new WebSocket(`ws://${this.debugPageWS}`);
     let isConnecting = false
     wsToHeadless.on('open', function open() {
-      console.log('connect to Headless')
+      log.title('connect to Headless').info()
       isConnecting = true
     });
 
@@ -70,7 +72,6 @@ class DevtoolPage extends EventEmitter {
     /** @todo catch the msg and try to reuse it */
     ws.on('message', function(msg) {
       wsToHeadless.send(msg)
-      // console.log('from Devtool', msg);
     });
 
     ws.on('close', () => {

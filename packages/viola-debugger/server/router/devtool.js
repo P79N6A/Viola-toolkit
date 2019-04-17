@@ -1,24 +1,22 @@
-const express = require('express')
-const router = express.Router();
 const DebugPeer = require('../po/DebugPeer')
 
 const log = require('../util/log')
 
-/**
- * A middle ws between devtoolUI and debugPage
- * @todo port targetId
- */
-router.ws('/:peerId', function(ws, req) {
+const PATH = '/devtool'
+
+module.exports = function setupRouter (app) {
   /**
-   * @todo get DevtoolPage by peerId, setup websockect with it
+   * A middle ws between devtoolUI and debugPage
    */
-  let peer = DebugPeer.getPeerById(req.params.peerId)
-  if (peer) {
-    peer.getDevtoolPage().setupWS(ws)
-  } else {
-    log.title('DEVTOOLS PEER NOT FOUND').error(req.params.peerId)
-  }
-
-});
-
-module.exports = router
+  app.ws(`${PATH}/:peerId`, function(ws, req) {
+    /**
+     * @todo get DevtoolPage by peerId, setup websockect with it
+     */
+    let peer = DebugPeer.getPeerById(req.params.peerId)
+    if (peer) {
+      peer.getDevtoolPage().setupWS(ws)
+    } else {
+      log.title('DEVTOOLS PEER NOT FOUND').error(req.params.peerId)
+    }
+  })
+}
