@@ -14,31 +14,47 @@ function randomColor () {
   return '#' + ((1<<24) * Math.random()|0).toString(16)
 }
 var textDom = null
+var divDom = null
 var k = 'debugger_cache'
 var C = viola.requireAPI('cache')
+
+// error occur at First
+// C.fakeErrorApi()
+// throw new Error('error occur at First')
+
 if (C && C.getItem) {
   C.getItem(k, function (res) {
     if (res) {
-      // init(res)
-      if (textDom) {
-        textDom.setText('Last: ' + res.toString())
+      if (/^#/.test(res)) {
+        if (textDom) {
+          textDom.setText('Last Color: ' + res.toString())
+          divDom.setStyle({
+            backgroundColor: res
+          })
+        }
       }
     }
+    // error occur in a callback
+    // throw new Error('Error occur in a callback, it still createBody')
   })
+
+  // error occur after a callNative
+  // throw new Error('error occur after a callNative!!')
+
   init('loading cache')
+
 } else {
-  init('no cache')
+  init('No Cache')
 }
-// init('no cache')
 
 function init (text) {
-  viola.document.body.appendChild(viola.document.createElement('div', {
+  viola.document.body.appendChild(divDom = viola.document.createElement('div', {
     style: {
       width: 750,
       height: 600,
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: '#888888'
+      backgroundColor: 'blue'
     },
     events: {
       click: function (e) {
@@ -47,8 +63,10 @@ function init (text) {
           backgroundColor: color
         })
         tip(color)
-        textDom.setText(color.replace('#', '# '))
+        textDom.setText(color.replace(/^#/, '# '))
         C.setItem(k, color)
+        // Error in fireEvent
+        // throw new Error('Error in fireEvent')
       }
     },
     children: [(textDom = viola.document.createTextNode(text, {
@@ -56,7 +74,12 @@ function init (text) {
         fontSize: '20dp',
         color: 'white'
       }
-    }))]
+    })), viola.document.createTextNode('typeof Vue:' + typeof Vue, {
+      style: {
+        fontSize: '15dp',
+        color: 'white'
+      }
+    })]
   }))
   
   viola.on('update', (e)=>{
@@ -64,7 +87,7 @@ function init (text) {
   })
   
   viola.on('destroy', (e) => {
-    console.info('destroyhghg asd')
+    console.info('destroy asd')
   })
   
   viola.document.render()

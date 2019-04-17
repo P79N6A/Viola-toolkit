@@ -170,7 +170,12 @@ class DebugPeer {
       } else if (this.deviceList.length === 1) {
         if (this._reload) {
           log.title('reload').info()
-          this.replayHistory(NATIVE_MSG_TYPE.CALL_NATIVE, deviceWS)
+          if (this.hasHistory(NATIVE_MSG_TYPE.CALL_NATIVE)) {
+            this.replayHistory(NATIVE_MSG_TYPE.CALL_NATIVE, deviceWS)
+          }
+          if (this.hasHistory(NATIVE_MSG_TYPE.ERROR)) {
+            this.replayHistory(NATIVE_MSG_TYPE.ERROR, deviceWS)
+          }
         } else {
           log.title('entry again').info()
           // entry again

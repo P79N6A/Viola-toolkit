@@ -1,10 +1,6 @@
-window.ENV = 'web'
+window.__VIOLA_DEBUG__ = true
 
-window.__DEBUG__ = true
-
-// window.ViolaEnv = {
-//   platform: 'iOS'
-// }
+window.ViolaEnv = Object.create(null)
 
 // window.Promise = undefined
 window.MessageChannel = undefined

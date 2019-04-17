@@ -171,11 +171,21 @@ class DebugPage extends EventEmitter {
   }
   async injectGlobalVar (key, value) {
     log.title('inject Global Var').info(key, value)
-    // if (this._globalVar[key]) {
-    //   log.title('injectGlobalVar warning: duplicate variable').info(key, value)
-    // }
     await this.page.evaluateOnNewDocument((key, value) => {
-      window[key] = value
+      if (window[key]) {
+        let originValue = window[key]
+        if (Object.prototype.toString.call(value) === '[object Object]') {
+          Object.keys(value).forEach(_key => {
+            originValue[_key] = value[_key]
+          })
+        } else if (Array.isArray(value)) {
+          originValue = originValue.concat(value)
+        } else {
+          window[key] = value
+        }
+      } else {
+        window[key] = value
+      }
     }, key, value)
   }
   callNative (instanceId, task) {
@@ -251,7 +261,9 @@ class DebugPage extends EventEmitter {
           }
         }, violaHandler, fnc, args)
       } catch (e) {
-        log.title('_evalViolaApi ERROR').error(e)
+        let errorStack = e.message.split('at')
+        log.title('DebugPage.prototype._evalViolaApi ERROR').warn(errorStack[0])
+        log.title('DebugPage.prototype._evalViolaApi ERROR').info(e)
       }
     } else {
       log.title('_evalViolaApi Pending').warn(fnc, args)

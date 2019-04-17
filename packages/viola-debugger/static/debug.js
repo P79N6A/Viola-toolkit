@@ -136,6 +136,7 @@ viola.tasker.receive = function (tasks) {
 
 var isCreateBody = 0,
     isReloading = 0,
+    isErrorOccurBeforeCreateBody = 0,
     realBodyRef = -1,
     fakeBodyRef = viola.document.body.ref;
 var pendingTask = [];
@@ -204,17 +205,29 @@ function onWSClose() {
 }
 
 function pageError(e) {
+  if (typeof e !== 'string') {
+    try {
+      e = JSON.stringify(e);
+    } catch (err) {
+      e = 'Error Occur !';
+    }
+  } // alert ErrorMsg
+
+
   alert(e);
+
+  if (isCreateBody) {
+    isErrorOccurBeforeCreateBody = 0;
+  } else {
+    isErrorOccurBeforeCreateBody = 1;
+  }
 }
 
 function pageReload(e) {
-  if (isCreateBody) {
+  if (isCreateBody || isErrorOccurBeforeCreateBody) {
     isReloading = 1;
-    tip('try to reload');
     var reload = viola.requireAPI('navigation').reloadPage;
     reload && reload();
-  } else {
-    tip('has not createBody');
   }
 }
 
@@ -225,7 +238,7 @@ function callNative(data) {
   var task;
 
   while (task = tasks.shift()) {
-    task.method === MSG_TYPE.METHOD.CREATE_BODY && (isCreateBody = 1);
+    task.method === MSG_TYPE.METHOD.CREATE_BODY && (isCreateBody = 1) && (isErrorOccurBeforeCreateBody = 0);
     viola.tasker.sendTask([task]);
   }
 } // Update Instance
