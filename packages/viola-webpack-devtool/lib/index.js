@@ -3,9 +3,10 @@ const ViolaDebug = require('@tencent/viola-debugger')
 const path = require('path')
 const MemoryFS = require('memory-fs');
 const webpack = require('webpack');
+const writeStats = require('./util/write')
 
 function violaDevtool(options, config) {
-	const fs = new MemoryFS();
+	const fs = new MemoryFS()
 
 	if (options.output.filename) {
     options.output.filename = '[name].js'
@@ -28,7 +29,9 @@ function violaDevtool(options, config) {
 		aggregateTimeout: 300,
 		poll: undefined
 	}, (err, stats) => {
+		writeStats(err, stats)
 		if (err) {
+			console.error('ERROR OCCUR')
 			throw new Error(err)
 		}
 
@@ -48,7 +51,7 @@ function violaDevtool(options, config) {
 				page && page.refresh()
 			})
 		}
-	});
+	})
 }
 
 function transform(entry, output) {
