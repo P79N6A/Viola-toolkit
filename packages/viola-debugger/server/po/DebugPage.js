@@ -235,7 +235,9 @@ class DebugPage extends EventEmitter {
       try {
         violaHandler = await this.page.evaluateHandle('viola')
       } catch (e) {
-        log.title('_getViolaHandler ERROR').error(e)
+        let errorStack = e.message.split(/(?:\s*)at/)
+        log.title('DebugPage.prototype._getViolaHandler ERROR').error(errorStack[0], errorStack[1])
+        log.title('DebugPage.prototype._getViolaHandler ERROR').info(e)
         violaHandler = null
       }
     }

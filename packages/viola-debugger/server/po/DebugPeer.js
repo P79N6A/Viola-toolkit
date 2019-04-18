@@ -334,9 +334,6 @@ class DebugPeer {
     this._hasOpenDevtool = true
     this.devtoolPage.on(DevtoolPage.EVENTS.CLOSE, () => {
       this.reset()
-      // this._hasOpenDevtool = false
-      // this.clearDevice()
-      // this.debugPage
     })
   }
 
@@ -347,7 +344,6 @@ class DebugPeer {
   reset () {
     log.title('devtool close').info()
     this._hasOpenDevtool = false
-    // this.clearDevice()
     this.debugPage.destroy()
     this.resetHistory()
   }
