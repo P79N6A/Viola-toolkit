@@ -2,7 +2,7 @@ const args = require('yargs').argv
 const common = require('./webpack.common.js')
 const merge = require('webpack-merge')
 const packup = require('./build')
-const ViolaDebug = require('viola-debugger')
+const ViolaDebug = require('@tencent/viola-webpack-devtool')
 const path = require('path')
 const MemoryFS = require('memory-fs');
 const webpack = require('webpack');
@@ -27,52 +27,4 @@ const commonConfig = common({
 
 let options = merge(commonConfig, require('./webpack.dev'))
 
-startDebuggerServer(options)
-
-function startDebuggerServer (options, config) {
-  // cover fileName
-  if (options.output.filename) {
-    options.output.filename = '[name].js'
-  }
-
-  console.log('options', options)
-
-  const compiler = webpack(options)
-
-  compiler.outputFileSystem = fs
-  const serveConfig = compiler.options.devServer
-
-  let ViolaDebugServer = null
-  compiler.watch({
-    aggregateTimeout: 300,
-    poll: undefined
-  }, (err, stats) => {
-    // console.log(stats)
-    if (err) {
-      throw new Error(err)
-    }
-    // console.log(ViolaDebugServer)
-    if (!ViolaDebugServer) {
-      ViolaDebugServer = ViolaDebug.startServer({
-        targets: transform(compiler.options.entry, compiler.options.output),
-        autoOpen: true,
-        multipleChannel: false,
-        fs,
-        ...serveConfig
-      })
-    } else {
-      const peers = ViolaDebugServer.defaultChannel.peers
-      Object.keys(peers).forEach(peerId => {
-        let page = peers[peerId].debugPage
-        page && page.refresh()
-      })
-    }
-  });
-
-  function transform (entry, output) {
-    return Object.keys(entry).reduce((res, name) => {
-      res.push(path.resolve(output.path, output.filename.replace('[name]', name)))
-      return res
-    }, [])
-  }
-}
+ViolaDebug(options)

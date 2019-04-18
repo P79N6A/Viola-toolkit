@@ -1,17 +1,17 @@
 {
   "name": "viola-webpack-devtool-demo",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.0.1",
+  "private": true,
+  "description": "DEMO for viola-webpack-devtool",
   "scripts": {
     "build": "node build/prod.js",
     "dev": "node build/dev.js",
     "debug": "node build/debug.js",
     "serve": "node serve/index.js",
     "web": "node build/web.js",
-    "debug": "viola-webpack-devtool --config webpack.config.js"
+    "debugCli": "viola-webpack-devtool --config webpack.config.js"
   },
-  "author": "",
+  "author": "RonkTsang",
   "license": "ISC",
   "devDependencies": {
     "@tencent/viola-template-compiler": "^2.5.20",
@@ -28,6 +28,7 @@
   "dependencies": {
     "@tencent/viola-associate": "^0.1.2",
     "@tencent/viola-mqq": "^1.2.3",
+    "@tencent/viola-webpack-devtool": "^0.1.2",
     "buble": "^0.19.3",
     "buble-loader": "^0.5.1",
     "console-error": "0.0.4",
@@ -39,7 +40,6 @@
     "koa-router": "^7.4.0",
     "koa-static": "^5.0.0",
     "koa-whistle": "^1.1.5",
-    "viola-webpack-devtool": "^0.0.0",
     "yargs": "12.0.1"
   }
 }
