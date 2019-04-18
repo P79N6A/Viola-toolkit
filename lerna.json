@@ -2,5 +2,11 @@
   "packages": [
     "packages/*"
   ],
-  "version": "0.0.0"
+  "command": {
+    "publish": {
+      "registry": "http://r.tnpm.oa.com"
+    }
+  },
+  "npmClient": "tnpm",
+  "version": "independent"
 }
